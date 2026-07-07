@@ -134,8 +134,6 @@
     width:11px;height:11px;border-radius:50%;flex:none;
   }
 
-  /* legend dot shared by legend + detail rows */
-
   /* detail box */
   .day-detail{
     margin-top:16px;
@@ -298,7 +296,7 @@
   /* time period */
   #f-time-custom{margin-top:8px;}
 
-  /* ===== multi-month calendar ===== */
+  /* ===== single-month calendar ===== */
   .months-wrap{
     position:relative;
     padding-top:34px;
@@ -342,11 +340,8 @@
   }
   .months-row{
     display:grid;
-    grid-template-columns:repeat(3, 1fr);
+    grid-template-columns:1fr;
     gap:14px;
-  }
-  @media (max-width:900px){
-    .months-row{grid-template-columns:1fr;}
   }
   .month-card{
     background:var(--paper);
@@ -368,7 +363,7 @@
   }
   .m-weekdays div{
     text-align:center;
-    font-size:10.5px;
+    font-size:11.5px;
     color:var(--muted);
     font-weight:600;
   }
@@ -377,42 +372,57 @@
   .m-grid{
     display:grid;
     grid-template-columns:repeat(7,1fr);
-    gap:3px;
+    gap:4px;
   }
   .m-day{
-    min-height:40px;
-    border-radius:6px;
+    min-height:78px;
+    border-radius:7px;
     border:1px solid transparent;
-    padding:3px 3px 2px;
+    padding:4px 4px 3px;
     cursor:pointer;
     background:#FCFDFC;
     display:flex;
     flex-direction:column;
-    align-items:center;
     gap:2px;
     transition:box-shadow .12s ease;
+    overflow:hidden;
   }
   .m-day:hover{box-shadow:0 0 0 2px var(--accent-soft) inset;}
-  .m-day.outside{opacity:.3;}
+  .m-day.outside{opacity:.35;}
   .m-day.today{border-color:var(--accent);}
   .m-day.holiday{background:#FBE3DE;}
   .m-day .m-num{
-    font-size:11px;
+    font-size:12px;
     font-weight:600;
     color:var(--ink);
   }
   .m-day.sunday .m-num{color:#C1543F;}
   .m-day.saturday .m-num{color:#5B7DB1;}
   .m-day.holiday .m-num{color:#B23B24;}
-  .m-dots{
+  .m-entries{
     display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:2px;
-    max-width:34px;
+    flex-direction:column;
+    gap:1px;
+    width:100%;
   }
-  .m-dot{width:5px;height:5px;border-radius:50%;}
-  .m-more{font-size:8px;color:var(--muted);}
+  .m-entry{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    overflow:hidden;
+  }
+  .m-entry .dot-inline{
+    width:6px;height:6px;border-radius:50%;flex:none;
+  }
+  .m-entry-name{
+    font-size:10px;
+    line-height:1.2;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .m-more{font-size:9.5px;color:var(--muted);margin-top:1px;}
 </style>
 </head>
 <body>
@@ -491,13 +501,12 @@
 
         <div class="legend" id="legend"></div>
       </div>
-      <div class="storage-note">ข้อมูลนี้ใช้ร่วมกันทุกคนที่เปิดหน้านี้</div>
+      <div class="storage-note">ข้อมูลนี้จัดเก็บไว้ส่วนกลาง เปิดจากเครื่องไหน เมื่อไหร่ก็เห็นข้อมูลเดิม</div>
     </div>
 
     <div>
       <div class="months-wrap">
         <div class="rings">
-          <div class="ring"></div><div class="ring"></div><div class="ring"></div>
           <div class="ring"></div><div class="ring"></div><div class="ring"></div>
           <div class="ring"></div><div class="ring"></div><div class="ring"></div>
         </div>
@@ -665,6 +674,11 @@ function leavesOnDate(iso){
   return leaves.filter(l => parseISO(l.start) <= d && d <= parseISO(l.end));
 }
 
+function periodSuffix(period){
+  if(!period || period === 'เต็มวัน') return '';
+  return ` (${period})`;
+}
+
 function buildMonthCells(y, m){
   const firstDay = new Date(y,m,1);
   const startOffset = firstDay.getDay(); // 0=Sun
@@ -688,74 +702,65 @@ function buildMonthCells(y, m){
 }
 
 function renderMonths(){
-  const startY = viewDate.getFullYear();
-  const startM = viewDate.getMonth();
-  const endDate = new Date(startY, startM+2, 1);
-  document.getElementById('range-title').textContent =
-    `${THAI_MONTHS[startM]} ${startY+543} – ${THAI_MONTHS[endDate.getMonth()]} ${endDate.getFullYear()+543}`;
+  const y = viewDate.getFullYear();
+  const m = viewDate.getMonth();
+  document.getElementById('range-title').textContent = `${THAI_MONTHS[m]} ${y+543}`;
 
   const todayISO = toISO(new Date());
   const row = document.getElementById('months-row');
   row.innerHTML = '';
 
-  for(let offset=0; offset<3; offset++){
-    const d = new Date(startY, startM+offset, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth();
+  const card = document.createElement('div');
+  card.className = 'month-card';
 
-    const card = document.createElement('div');
-    card.className = 'month-card';
+  const wk = document.createElement('div');
+  wk.className = 'm-weekdays';
+  wk.innerHTML = THAI_DAYS.map((dn,i)=>
+    `<div class="${i===0?'sun':i===6?'sat':''}">${dn}</div>`
+  ).join('');
+  card.appendChild(wk);
 
-    const title = document.createElement('div');
-    title.className = 'm-title';
-    title.textContent = `${THAI_MONTHS[m]} ${y+543}`;
-    card.appendChild(title);
+  const grid = document.createElement('div');
+  grid.className = 'm-grid';
 
-    const wk = document.createElement('div');
-    wk.className = 'm-weekdays';
-    wk.innerHTML = THAI_DAYS.map((dn,i)=>
-      `<div class="${i===0?'sun':i===6?'sat':''}">${dn}</div>`
-    ).join('');
-    card.appendChild(wk);
+  buildMonthCells(y,m).forEach(cell=>{
+    const iso = toISO(cell.date);
+    const dow = cell.date.getDay();
+    const dayLeaves = leavesOnDate(iso);
+    const holidayName = HOLIDAYS[iso];
 
-    const grid = document.createElement('div');
-    grid.className = 'm-grid';
+    const div = document.createElement('div');
+    let cls = 'm-day';
+    if(cell.outside) cls += ' outside';
+    if(iso===todayISO) cls += ' today';
+    if(holidayName) cls += ' holiday';
+    if(dow===0) cls += ' sunday';
+    if(dow===6) cls += ' saturday';
+    div.className = cls;
+    div.title = holidayName ? holidayName : '';
 
-    buildMonthCells(y,m).forEach(cell=>{
-      const iso = toISO(cell.date);
-      const dow = cell.date.getDay();
-      const dayLeaves = leavesOnDate(iso);
-      const holidayName = HOLIDAYS[iso];
-
-      const div = document.createElement('div');
-      let cls = 'm-day';
-      if(cell.outside) cls += ' outside';
-      if(iso===todayISO) cls += ' today';
-      if(holidayName) cls += ' holiday';
-      if(dow===0) cls += ' sunday';
-      if(dow===6) cls += ' saturday';
-      div.className = cls;
-      div.title = holidayName ? holidayName : '';
-
-      let dotsHtml = '';
-      const maxShow = 6;
-      dayLeaves.slice(0,maxShow).forEach(l=>{
-        const c = PEOPLE[l.name] || {dot:'#999'};
-        dotsHtml += `<span class="m-dot" style="background:${c.dot}" title="${l.name} - ${l.type}"></span>`;
-      });
-      let moreHtml = '';
-      if(dayLeaves.length > maxShow){
-        moreHtml = `<span class="m-more">+${dayLeaves.length-maxShow}</span>`;
-      }
-
-      div.innerHTML = `<div class="m-num">${cell.date.getDate()}</div><div class="m-dots">${dotsHtml}${moreHtml}</div>`;
-      div.addEventListener('click', ()=> showDayDetail(iso));
-      grid.appendChild(div);
+    let entriesHtml = '';
+    const maxShow = 4;
+    dayLeaves.slice(0,maxShow).forEach(l=>{
+      const c = PEOPLE[l.name] || {dot:'#999'};
+      const suffix = periodSuffix(l.period);
+      entriesHtml += `<div class="m-entry" title="${l.name}${suffix} - ${l.type}">
+        <span class="dot-inline" style="background:${c.dot}"></span>
+        <span class="m-entry-name">${l.name}${suffix}</span>
+      </div>`;
     });
+    let moreHtml = '';
+    if(dayLeaves.length > maxShow){
+      moreHtml = `<div class="m-more">+${dayLeaves.length-maxShow} เพิ่มเติม</div>`;
+    }
 
-    card.appendChild(grid);
-    row.appendChild(card);
-  }
+    div.innerHTML = `<div class="m-num">${cell.date.getDate()}</div><div class="m-entries">${entriesHtml}${moreHtml}</div>`;
+    div.addEventListener('click', ()=> showDayDetail(iso));
+    grid.appendChild(div);
+  });
+
+  card.appendChild(grid);
+  row.appendChild(card);
 }
 
 function showDayDetail(iso){
