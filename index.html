@@ -8,16 +8,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#F5F0FA; /* ปรับพื้นหลังให้เข้ากับเฉดม่วงสว่างของภาพต้นแบบ */
+    --bg:#F4F2F9; /* ปรับพื้นหลังให้ติดโทนม่วงสว่างเล็กน้อย */
     --paper:#FFFFFF;
-    --ink:#2E1065; /* สีตัวอักษรม่วงเข้ม */
-    --muted:#701A75; /* สีตัวอักษรรองม่วงชมพู */
-    --border:#E9D5FF; /* สีเส้นขอบโทนม่วงพาสเทล */
-    --accent:#9333EA; /* สีม่วงสว่างสดใส (Vibrant Violet) */
-    --accent-dark:#7E22CE; /* สีม่วงเข้มสะดุดตา (Royal Purple) */
-    --accent-soft:#F3E8FF; /* สีม่วงพาสเทลอ่อน */
-    --accent2:#D91B9C; /* สีชมพูบานเย็นดึงจากดอกไม้จริงในรูป (Vibrant Pink/Magenta) */
-    --accent2-soft:#FCE7F3; /* สีชมพูพาสเทลอ่อน */
+    --ink:#2C243B; /* สีตัวอักษรโทนม่วงเข้ม */
+    --muted:#7A708A; /* สีตัวอักษรรองโทนเทาม่วง */
+    --border:#E6E2F0; /* สีเส้นขอบโทนม่วงอ่อน */
+    --accent:#8B5CF6; /* สีม่วงสดใส (Vibrant Violet) */
+    --accent-dark:#6D28D9; /* สีม่วงเข้ม (Royal Purple) */
+    --accent-soft:#F5F3FF; /* สีม่วงพาสเทลอ่อนพิเศษ */
+    --accent2:#EC4899; /* สีชมพูมาเจนต้าสดใสคู่เฉด (Lively Pink) */
+    --accent2-soft:#FDF2F8; /* สีชมพูอ่อนพิเศษ */
     --sun:#F59E0B;
     --sun-soft:#FEF3C7;
     --danger:#EF4444;
@@ -26,8 +26,8 @@
   body{
     margin:0;
     background:
-      radial-gradient(circle at 10% 0%, #FAE8FF 0%, transparent 45%), /* แสงเรืองม่วงอมชมพูสว่าง */
-      radial-gradient(circle at 90% 10%, #FCE7F3 0%, transparent 40%),
+      radial-gradient(circle at 10% 0%, #F5F3FF 0%, transparent 45%), /* แสงเรืองม่วงอ่อน */
+      radial-gradient(circle at 90% 10%, #FDF2F8 0%, transparent 40%), /* แสงเรืองชมพูอ่อน */
       var(--bg);
     color:var(--ink);
     font-family:'Sarabun',sans-serif;
@@ -44,29 +44,11 @@
   }
   header.top{
     display:flex;
-    align-items:center;
-    justify-content:flex-start;
+    align-items:baseline;
+    justify-content:space-between;
     flex-wrap:wrap;
     gap:10px;
     margin-bottom:22px;
-    background-image: url('image_3c5d18.jpg'); /* ตั้งพื้นหลังเป็นรูปต้นแบบดอกไม้สีม่วงชมพู */
-    background-size: cover;
-    background-position: top center; /* ตั้งให้ดอกไม้เก๊กฮวย/เยอบีร่าที่ขอบบนจัดแสดงเด่นชัด */
-    padding: 35px 30px;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(147, 51, 234, 0.2);
-    border: 1px solid var(--border);
-    position: relative;
-  }
-  header.top .header-content {
-    background: rgba(255, 255, 255, 0.92); /* กล่องฝ้ากระจกพรีเมียมให้อ่านข้อความง่ายที่สุด */
-    padding: 16px 24px;
-    border-radius: 12px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 4px 25px rgba(147, 51, 234, 0.15);
-    max-width: 100%;
   }
   header.top h1{
     font-size:27px;
@@ -75,7 +57,6 @@
     -webkit-background-clip:text;
     background-clip:text;
     color:transparent;
-    margin-bottom: 4px;
   }
   header.top p{
     margin:4px 0 0;
@@ -97,7 +78,7 @@
     border-top:4px solid var(--accent);
     border-radius:14px;
     padding:18px;
-    box-shadow:0 6px 18px rgba(46, 16, 101, 0.05);
+    box-shadow:0 6px 18px rgba(44,36,59,0.05);
   }
   .panel h3{
     font-size:16px;
@@ -138,7 +119,7 @@
     cursor:pointer;
     padding:2px;
     margin-left:4px;
-    filter:invert(30%) sepia(85%) saturate(1200%) hue-rotate(240deg) brightness(90%) contrast(95%); /* เปลี่ยนสีไอคอนปฏิทินเป็นเฉดม่วงสดใส */
+    filter:invert(40%) sepia(80%) saturate(1200%) hue-rotate(230deg) brightness(95%) contrast(95%); /* ปรับฟิลเตอร์ไอคอนปฏิทินเป็นสีม่วง */
   }
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   @media (max-width:420px){
@@ -157,10 +138,10 @@
     font-weight:600;
     font-size:15px;
     cursor:pointer;
-    box-shadow:0 6px 14px rgba(147, 51, 234, 0.3); /* เงาสะท้อนเรืองม่วงสอดคล้องกับปุ่มหลัก */
+    box-shadow:0 6px 14px rgba(139,92,246,0.3); /* แสงเงาสะท้อนสีม่วง */
     transition:transform .12s ease, box-shadow .12s ease;
   }
-  button.primary:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(147, 51, 234, 0.4);}
+  button.primary:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(139,92,246,0.4);}
   button.primary:active{transform:translateY(0);}
   .error-msg{
     color:var(--danger);
@@ -488,9 +469,9 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="header-content">
-      <h1>ปฏิทินวันลา (ทีม)</h1>
-      <p>ระบบบันทึกวันลากลาง ซิงก์ข้อมูลอัตโนมัติลงชีต <strong style="color: var(--accent-dark);">"calen"</strong></p>
+    <div>
+      <h1>ปฏิทินวันลา</h1>
+      <p><strong style="color: var(--accent-dark);">"calen"</strong></p>
     </div>
   </header>
 
@@ -539,7 +520,7 @@
         <select id="f-type">
           <option>ลาป่วย</option>
           <option>ลากิจ</option>
-          <option>ลาพักร้อน</option>
+          <option>ลาพักผ่อน</option>
           <option>ประชุม</option>
           <option>อื่นๆ</option>
         </select>
@@ -554,12 +535,12 @@
         <input type="text" id="f-period-custom" placeholder="เช่น 13:00 - 15:00" style="display:none;">
 
         <label for="f-note">หมายเหตุ (ถ้ามี)</label>
-        <textarea id="f-note" placeholder="เช่น ลาไปธุระที่ต่างจังหวัด"></textarea>
+        <textarea id="f-note" placeholder=></textarea>
 
         <div class="error-msg" id="err"></div>
         <button class="primary" id="btn-save">บันทึกวันลา</button>
       </div>
-      <div class="storage-note" id="connection-note">เชื่อมต่อฐานข้อมูลชีต "calen" แล้ว เปิดใช้งานจากโทรศัพท์หรือแท็บเล็ตเครื่องใดก็ได้ ข้อมูลจะซิงก์กันโดยอัตโนมัติ</div>
+      <div class="storage-note" id="connection-note"></div>
     </div>
 
     <div>
@@ -586,7 +567,7 @@
 
       <div class="panel list-panel">
         <div class="list-panel-head">
-          <h3>รายการวันลาทั้งหมด (ปัจจุบันและอนาคต)</h3>
+          <h3>รายการวันลา</h3>
           <span class="sync-badge" id="sync-badge">กำลังเตรียมระบบ...</span>
         </div>
         <div id="list-wrap"></div>
@@ -728,7 +709,7 @@ function setSyncBadge(state, detail){
   
   el.className = 'sync-badge';
   if(state === 'ok'){
-    el.textContent = '☁️ ซิงก์ชีต "calen" แล้ว';
+    el.textContent = '☁️ ซิงก์แล้ว';
   } else if(state === 'saving'){
     el.textContent = '⏳ กำลังบันทึกข้อมูล...';
     el.classList.add('warn');
