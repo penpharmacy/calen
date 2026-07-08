@@ -622,6 +622,10 @@
 </div>
 
 <script>
+// วาง Web app URL จาก Google Apps Script deployment ตรงนี้ (ดูวิธีขอ URL ได้จากคำแนะนำที่ให้ไว้)
+// ถ้ายังไม่ได้ตั้งค่า ระบบจะใช้ storage ภายในเป็นหลักไปก่อน
+const SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwQPVLEq487n72C9w5Dt6Hr1lalUYJCMIDJZm2At3ZBfgepG1D7erR1r6AwuvbZUKEs/exec';
+
 const PEOPLE = {
   "แอ๋ม": { dot:"#E63946" },
   "เพ็ญ": { dot:"#FFB300" },
@@ -744,41 +748,92 @@ function setSyncBadge(state){
   const el = document.getElementById('sync-badge');
   if(!el) return;
   if(state === 'ok'){
-    el.textContent = '☁ ข้อมูลซิงก์แล้ว';
+    el.textContent = '☁ ซิงก์กับ Google Sheet แล้ว';
     el.classList.remove('err');
   } else if(state === 'saving'){
     el.textContent = 'กำลังบันทึก...';
     el.classList.remove('err');
+  } else if(state === 'local'){
+    el.textContent = '💾 บันทึกในเครื่อง (ยังไม่ได้ตั้งค่า Sheet)';
+    el.classList.remove('err');
   } else {
-    el.textContent = '⚠ บันทึกไม่สำเร็จ ลองใหม่';
+    el.textContent = '⚠ เชื่อมต่อ Sheet ไม่สำเร็จ ใช้ข้อมูลสำรองแทน';
     el.classList.add('err');
   }
 }
 
+function sheetRowToLeave(r){
+  return {
+    id: String(r.id),
+    name: r.name,
+    start: r.start,
+    end: r.end,
+    type: r.type,
+    period: r.period,
+    note: r.note || ''
+  };
+}
+
 async function loadLeaves(){
+  // เก็บสำเนาจาก storage ไว้ก่อนเป็นค่าเริ่มต้น/สำรอง
+  let localCopy = [];
   try{
     const res = await window.storage.get('leaves', true);
-    leaves = res ? JSON.parse(res.value) : [];
-    setSyncBadge('ok');
+    localCopy = res ? JSON.parse(res.value) : [];
   }catch(e){
-    leaves = [];
-    setSyncBadge('ok'); // key simply doesn't exist yet, not an error
+    localCopy = [];
+  }
+
+  if(!SHEET_WEB_APP_URL){
+    leaves = localCopy;
+    setSyncBadge('local');
+    return;
+  }
+
+  try{
+    const resp = await fetch(SHEET_WEB_APP_URL, { method:'GET' });
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const rows = await resp.json();
+    leaves = rows.map(sheetRowToLeave);
+    setSyncBadge('ok');
+    // อัปเดตสำเนาในเครื่องให้ตรงกับ Sheet ไว้เป็นสำรอง
+    window.storage.set('leaves', JSON.stringify(leaves), true).catch(()=>{});
+  }catch(e){
+    console.error('ดึงข้อมูลจาก Sheet ไม่สำเร็จ ใช้ข้อมูลสำรองในเครื่องแทน', e);
+    leaves = localCopy;
+    setSyncBadge('err');
   }
 }
+
 async function saveLeaves(){
   setSyncBadge('saving');
+
+  // บันทึกสำเนาในเครื่องไว้ก่อนเสมอ (กันข้อมูลหายถ้า Sheet ต่อไม่ติด)
+  let localOk = false;
   try{
     const result = await window.storage.set('leaves', JSON.stringify(leaves), true);
-    if(!result){
-      setSyncBadge('err');
-      return false;
-    }
+    localOk = !!result;
+  }catch(e){
+    localOk = false;
+  }
+
+  if(!SHEET_WEB_APP_URL){
+    setSyncBadge(localOk ? 'local' : 'err');
+    return localOk;
+  }
+
+  try{
+    const resp = await fetch(SHEET_WEB_APP_URL, {
+      method:'POST',
+      body: JSON.stringify(leaves)
+    });
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
     setSyncBadge('ok');
     return true;
   }catch(e){
-    console.error('บันทึกข้อมูลไม่สำเร็จ', e);
+    console.error('บันทึกขึ้น Google Sheet ไม่สำเร็จ (ข้อมูลยังอยู่ในเครื่อง)', e);
     setSyncBadge('err');
-    return false;
+    return localOk;
   }
 }
 
