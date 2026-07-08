@@ -248,6 +248,7 @@
     color:var(--accent-dark);
     white-space:nowrap;
     font-weight:600;
+    cursor:pointer;
   }
   .sync-badge.err{background:var(--accent2-soft); color:#B5482F;}
   .backup-row{
@@ -624,7 +625,10 @@
 <script>
 // วาง Web app URL จาก Google Apps Script deployment ตรงนี้ (ดูวิธีขอ URL ได้จากคำแนะนำที่ให้ไว้)
 // ถ้ายังไม่ได้ตั้งค่า ระบบจะใช้ storage ภายในเป็นหลักไปก่อน
-const SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxMrPrACiT_rZxi19vKR0bFeaRQwqPZtMbwl5u4rD07cAUh-o-GonWIhnc0hVCDiH1hCw/exec';
+// หมายเหตุ: หน้าเว็บนี้รันอยู่ใน Claude artifact ซึ่งไม่อนุญาตให้เรียก API ภายนอกโดยตรง (เช่น Google Apps Script)
+// จึงใช้ window.storage (ระบบเก็บข้อมูลถาวรของ artifact เอง) เป็นแหล่งข้อมูลหลักแทน ซึ่งจะคงข้อมูลไว้
+// ไม่ว่าจะเปิดจากเครื่องไหนหรือปิดเปิดใหม่กี่ครั้งก็ตาม ตราบใดที่เปิดผ่านลิงก์ artifact เดียวกันนี้
+const SHEET_WEB_APP_URL = '';
 
 const PEOPLE = {
   "แอ๋ม": { dot:"#E63946" },
@@ -744,8 +748,11 @@ function renderLegend(){
   ).join('');
 }
 
-function setSyncBadge(state){
+let lastSyncDetail = '';
+
+function setSyncBadge(state, detail){
   const el = document.getElementById('sync-badge');
+  if(detail !== undefined) lastSyncDetail = detail;
   if(!el) return;
   if(state === 'ok'){
     el.textContent = '☁ ซิงก์กับ Google Sheet แล้ว';
@@ -754,13 +761,21 @@ function setSyncBadge(state){
     el.textContent = 'กำลังบันทึก...';
     el.classList.remove('err');
   } else if(state === 'local'){
-    el.textContent = '💾 บันทึกในเครื่อง (ยังไม่ได้ตั้งค่า Sheet)';
+    el.textContent = '☁ บันทึกถาวรแล้ว (เห็นได้ทุกเครื่อง)';
     el.classList.remove('err');
   } else {
-    el.textContent = '⚠ เชื่อมต่อ Sheet ไม่สำเร็จ ใช้ข้อมูลสำรองแทน';
+    el.textContent = '⚠ เชื่อมต่อ Sheet ไม่สำเร็จ (แตะเพื่อดูรายละเอียด)';
     el.classList.add('err');
   }
 }
+
+document.getElementById('sync-badge').addEventListener('click', ()=>{
+  if(lastSyncDetail){
+    alert('รายละเอียด:\n' + lastSyncDetail);
+  } else {
+    alert('เชื่อมต่อกับ Google Sheet เรียบร้อยดี ไม่มีข้อผิดพลาด');
+  }
+});
 
 function sheetRowToLeave(r){
   return {
@@ -772,6 +787,21 @@ function sheetRowToLeave(r){
     period: r.period,
     note: r.note || ''
   };
+}
+
+// ดึง response ออกมาเป็นข้อความสำหรับวิเคราะห์ปัญหา และตรวจว่าเป็น JSON จริงหรือหน้า HTML
+// (เช่น หน้ายืนยันสิทธิ์ของ Google ที่ขึ้นมาแทนข้อมูลจริง เมื่อ deploy ตั้งสิทธิ์การเข้าถึงไม่ถูกต้อง)
+async function parseSheetResponse(resp){
+  const text = await resp.text();
+  const trimmed = text.trim();
+  if(trimmed.startsWith('<')){
+    throw new Error('Sheet ตอบกลับเป็นหน้า HTML แทนข้อมูล JSON (มักเกิดจากตั้งค่า "Who has access" ตอน Deploy ไม่ได้เป็น "Anyone" หรือยังไม่ได้ Authorize) รายละเอียด: ' + trimmed.slice(0,150));
+  }
+  try{
+    return JSON.parse(trimmed);
+  }catch(e){
+    throw new Error('แปลงข้อมูลจาก Sheet เป็น JSON ไม่ได้: ' + trimmed.slice(0,150));
+  }
 }
 
 async function loadLeaves(){
@@ -792,16 +822,20 @@ async function loadLeaves(){
 
   try{
     const resp = await fetch(SHEET_WEB_APP_URL, { method:'GET' });
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    const rows = await resp.json();
+    if(!resp.ok){
+      const bodyText = await resp.text().catch(()=> '');
+      throw new Error(`HTTP ${resp.status} ${resp.statusText} — ${bodyText.slice(0,150)}`);
+    }
+    const rows = await parseSheetResponse(resp);
+    if(!Array.isArray(rows)) throw new Error('รูปแบบข้อมูลจาก Sheet ไม่ใช่ list ตามที่คาดไว้');
     leaves = rows.map(sheetRowToLeave);
-    setSyncBadge('ok');
+    setSyncBadge('ok', '');
     // อัปเดตสำเนาในเครื่องให้ตรงกับ Sheet ไว้เป็นสำรอง
     window.storage.set('leaves', JSON.stringify(leaves), true).catch(()=>{});
   }catch(e){
     console.error('ดึงข้อมูลจาก Sheet ไม่สำเร็จ ใช้ข้อมูลสำรองในเครื่องแทน', e);
     leaves = localCopy;
-    setSyncBadge('err');
+    setSyncBadge('err', String(e.message || e));
   }
 }
 
@@ -827,12 +861,16 @@ async function saveLeaves(){
       method:'POST',
       body: JSON.stringify(leaves)
     });
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    setSyncBadge('ok');
+    if(!resp.ok){
+      const bodyText = await resp.text().catch(()=> '');
+      throw new Error(`HTTP ${resp.status} ${resp.statusText} — ${bodyText.slice(0,150)}`);
+    }
+    await parseSheetResponse(resp); // ตรวจว่าตอบกลับเป็น JSON จริง ไม่ใช่หน้า HTML แทรก
+    setSyncBadge('ok', '');
     return true;
   }catch(e){
     console.error('บันทึกขึ้น Google Sheet ไม่สำเร็จ (ข้อมูลยังอยู่ในเครื่อง)', e);
-    setSyncBadge('err');
+    setSyncBadge('err', String(e.message || e));
     return localOk;
   }
 }
