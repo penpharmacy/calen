@@ -143,6 +143,23 @@
   }
   button.primary:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(139,92,246,0.4);}
   button.primary:active{transform:translateY(0);}
+  
+  button.secondary{
+    margin-top:8px;
+    width:100%;
+    background:#E6E2F0;
+    color:var(--ink);
+    border:none;
+    padding:10px 14px;
+    border-radius:10px;
+    font-family:'Kanit',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:background .12s ease;
+  }
+  button.secondary:hover{background:#D9D5E5;}
+
   .error-msg{
     color:var(--danger);
     font-size:13px;
@@ -179,6 +196,15 @@
     font-size:13px;
   }
   .detail-entry .info{flex:1;}
+  .detail-entry .actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .detail-entry .edit{
+    border:none;background:none;color:var(--accent);
+    cursor:pointer;font-size:14px;line-height:1;
+  }
   .detail-entry .del{
     border:none;background:none;color:var(--danger);
     cursor:pointer;font-size:16px;line-height:1;
@@ -213,6 +239,9 @@
     font-size:13px;
     padding:14px 2px;
   }
+  .edit-row{
+    border:none;background:none;color:var(--accent);cursor:pointer;font-size:13px;margin-right:8px;
+  }
   .del-row{
     border:none;background:none;color:var(--danger);cursor:pointer;font-size:15px;
   }
@@ -223,7 +252,24 @@
     gap:8px;
     margin-bottom:14px;
   }
-  .list-panel-head h3{margin-bottom:0;}
+  .list-panel-head-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .list-panel-head-title h3{margin-bottom:0;}
+  .btn-toggle-list{
+    border:1px solid var(--border);
+    background:var(--paper);
+    border-radius:6px;
+    padding:3px 8px;
+    font-size:12px;
+    cursor:pointer;
+    color:var(--muted);
+    font-family:'Sarabun',sans-serif;
+    transition: background .12s;
+  }
+  .btn-toggle-list:hover{background:var(--accent-soft);}
   .sync-badge{
     font-size:11.5px;
     padding:4px 10px;
@@ -471,14 +517,14 @@
   <header class="top">
     <div>
       <h1>ปฏิทินวันลา</h1>
-      <p><strong style="color: var(--accent-dark);">"calen"</strong></p>
+      <p><strong style="color: var(--accent-dark);">""</strong></p>
     </div>
   </header>
 
   <div class="layout">
     <div>
-      <div class="panel">
-        <h3>เพิ่มวันลา</h3>
+      <div class="panel" id="form-panel">
+        <h3 id="form-title">เพิ่มวันลา</h3>
         <label>ชื่อ (เลือกได้มากกว่า 1 คน)</label>
         <div class="name-checks" id="name-checks"></div>
 
@@ -535,10 +581,11 @@
         <input type="text" id="f-period-custom" placeholder="เช่น 13:00 - 15:00" style="display:none;">
 
         <label for="f-note">หมายเหตุ (ถ้ามี)</label>
-        <textarea id="f-note" placeholder=></textarea>
+        <textarea id="f-note" placeholder=""></textarea>
 
         <div class="error-msg" id="err"></div>
         <button class="primary" id="btn-save">บันทึกวันลา</button>
+        <button class="secondary" id="btn-cancel-edit" style="display:none;">ยกเลิกการแก้ไข</button>
       </div>
       <div class="storage-note" id="connection-note"></div>
     </div>
@@ -567,7 +614,10 @@
 
       <div class="panel list-panel">
         <div class="list-panel-head">
-          <h3>รายการวันลา</h3>
+          <div class="list-panel-head-title">
+            <h3>รายการวันลา</h3>
+            <button class="btn-toggle-list" id="btn-toggle-list">ซ่อน</button>
+          </div>
           <span class="sync-badge" id="sync-badge">กำลังเตรียมระบบ...</span>
         </div>
         <div id="list-wrap"></div>
@@ -624,6 +674,8 @@ viewDate.setDate(1);
 let selectedDayISO = null;
 let dateMode = 'single';
 let multiDates = [];
+let editingLeaveId = null; // บันทึก ID ของข้อมูลที่กำลังถูกแก้ไข
+let isListVisible = true; // บันทึกสถานะการซ่อน/แสดงรายการวันลา
 
 const pad = n => String(n).padStart(2,'0');
 const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -958,11 +1010,22 @@ function showDayDetail(iso){
         <span class="dot" style="background:${c.dot}"></span>
         <div class="info"><strong>${l.name}</strong> · ${l.type} · ${l.period || 'เต็มวัน'}${l.note ? ' · '+escapeHtml(l.note) : ''}
         <div style="color:#6E7A70;font-size:11.5px;">${l.start} ถึง ${l.end}</div></div>
-        <button class="del" data-id="${l.id}" title="ลบ">✕</button>
+        <div class="actions">
+          <button class="edit" data-id="${l.id}" title="แก้ไข">✏️</button>
+          <button class="del" data-id="${l.id}" title="ลบ">✕</button>
+        </div>
       </div>`;
     }).join('');
   }
   box.style.display = 'block';
+
+  // ผูกอีเวนต์สำหรับปุ่มแก้ไขในรายละเอียดวันลาประจำวัน
+  listEl.querySelectorAll('.edit').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.currentTarget.dataset.id;
+      startEditLeave(id);
+    });
+  });
 
   listEl.querySelectorAll('.del').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
@@ -1000,7 +1063,7 @@ function renderList(){
   
   const sorted = [...activeLeaves].sort((a,b)=> parseISO(a.start) - parseISO(b.start));
   wrap.innerHTML = `<table>
-    <thead><tr><th>ชื่อ</th><th>ประเภท</th><th>ช่วงเวลา</th><th>วันที่ลา</th><th>หมายเหตุ</th><th></th></tr></thead>
+    <thead><tr><th>ชื่อ</th><th>ประเภท</th><th>ช่วงเวลา</th><th>วันที่ลา</th><th>หมายเหตุ</th><th>การจัดการ</th></tr></thead>
     <tbody>
       ${sorted.map(l=>{
         const c = PEOPLE[l.name] || {dot:'#999'};
@@ -1016,11 +1079,22 @@ function renderList(){
           <td>${l.period || 'เต็มวัน'}</td>
           <td>${dateDisplay}</td>
           <td>${l.note ? escapeHtml(l.note) : '-'}</td>
-          <td><button class="del-row" data-id="${l.id}" title="ลบ">✕</button></td>
+          <td>
+            <button class="edit-row" data-id="${l.id}" title="แก้ไข">✏️</button>
+            <button class="del-row" data-id="${l.id}" title="ลบ">✕</button>
+          </td>
         </tr>`;
       }).join('')}
     </tbody>
   </table>`;
+
+  // ผูกอีเวนต์สำหรับปุ่มแก้ไขในตารางรายการ
+  wrap.querySelectorAll('.edit-row').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.currentTarget.dataset.id;
+      startEditLeave(id);
+    });
+  });
 
   wrap.querySelectorAll('.del-row').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
@@ -1035,6 +1109,104 @@ function renderList(){
     });
   });
 }
+
+// ฟังก์ชันเริ่มการแก้ไขข้อมูลวันลา
+function startEditLeave(id){
+  const leave = leaves.find(l => String(l.id) === String(id));
+  if(!leave) return;
+
+  editingLeaveId = id;
+  
+  // เปลี่ยนแปลง UI ส่วนหัวของฟอร์ม และชื่อปุ่ม
+  document.getElementById('form-title').textContent = 'แก้ไขข้อมูลวันลา';
+  document.getElementById('btn-save').textContent = 'บันทึกการแก้ไข';
+  document.getElementById('btn-cancel-edit').style.display = 'block';
+
+  // รีเซ็ตการเลือกพนักงาน แล้วเลือกพนักงานของรายการที่กดแก้ไข
+  document.querySelectorAll('#name-checks input').forEach(cb => {
+    cb.checked = (cb.value === leave.name);
+    cb.closest('.name-check').classList.toggle('checked', cb.checked);
+  });
+
+  // พิจารณารูปแบบวันที่
+  if(leave.start === leave.end){
+    dateMode = 'single';
+    document.getElementById('f-single-date').value = leave.start;
+  } else {
+    dateMode = 'range';
+    document.getElementById('f-start').value = leave.start;
+    document.getElementById('f-end').value = leave.end;
+  }
+
+  // อัปเดตแท็บวันลา
+  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active', t.dataset.mode === dateMode));
+  document.getElementById('mode-single').classList.toggle('active', dateMode === 'single');
+  document.getElementById('mode-range').classList.toggle('active', dateMode === 'range');
+  document.getElementById('mode-multi').classList.toggle('active', dateMode === 'multi');
+
+  // ตั้งค่าประเภทการลา
+  document.getElementById('f-type').value = leave.type;
+
+  // ตั้งค่าช่วงเวลา
+  const periodSel = document.getElementById('f-period');
+  const periodCustom = document.getElementById('f-period-custom');
+  if(['เต็มวัน', 'เช้า', 'บ่าย'].includes(leave.period)){
+    periodSel.value = leave.period;
+    periodCustom.style.display = 'none';
+    periodCustom.value = '';
+  } else {
+    periodSel.value = 'custom';
+    periodCustom.style.display = 'block';
+    periodCustom.value = leave.period;
+  }
+
+  // ตั้งค่าหมายเหตุ
+  document.getElementById('f-note').value = leave.note || '';
+
+  // เลื่อนหน้าจอขึ้นไปที่ฟอร์มอย่างนุ่มนวลเพื่อให้ผู้ใช้แก้ไขได้ทันที
+  document.getElementById('form-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ฟังก์ชันยกเลิกการแก้ไขข้อมูลวันลา เพื่อคืนค่าฟอร์มกลับเป็นปกติ
+function cancelEdit(){
+  editingLeaveId = null;
+  document.getElementById('form-title').textContent = 'เพิ่มวันลา';
+  document.getElementById('btn-save').textContent = 'บันทึกวันลา';
+  document.getElementById('btn-cancel-edit').style.display = 'none';
+
+  // ล้างค่าในฟอร์ม
+  document.querySelectorAll('#name-checks input').forEach(cb=>{
+    cb.checked = false;
+    cb.closest('.name-check').classList.remove('checked');
+  });
+  document.getElementById('f-single-date').value = '';
+  document.getElementById('f-start').value = '';
+  document.getElementById('f-end').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('f-period').value = 'เต็มวัน';
+  document.getElementById('f-period-custom').value = '';
+  document.getElementById('f-period-custom').style.display = 'none';
+  document.getElementById('err').style.display = 'none';
+  multiDates = [];
+  renderDateChips();
+}
+
+document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
+
+// ซ่อน / แสดง ตารางรายการวันลา
+document.getElementById('btn-toggle-list').addEventListener('click', ()=>{
+  const wrap = document.getElementById('list-wrap');
+  const btn = document.getElementById('btn-toggle-list');
+  isListVisible = !isListVisible;
+  
+  if(isListVisible){
+    wrap.style.display = 'block';
+    btn.textContent = 'ซ่อน';
+  } else {
+    wrap.style.display = 'none';
+    btn.textContent = 'แสดง';
+  }
+});
 
 document.getElementById('btn-save').addEventListener('click', async ()=>{
   const names = getSelectedNames();
@@ -1098,14 +1270,54 @@ document.getElementById('btn-save').addEventListener('click', async ()=>{
 
   errEl.style.display = 'none';
 
-  names.forEach(name=>{
-    ranges.forEach(r=>{
-      leaves.push({
-        id: Date.now() + Math.random().toString(16).slice(2),
-        name, start:r.start, end:r.end, type, period, note
+  if(editingLeaveId){
+    // === กรณีอยู่ในโหมดแก้ไข ===
+    // หาตำแหน่งข้อมูลเดิม
+    const idx = leaves.findIndex(l => String(l.id) === String(editingLeaveId));
+    if(idx !== -1){
+      // ปรับปรุงแถวข้อมูลด้วยค่าที่ป้อนใหม่ (ใช้รายชื่อแรกที่ถูกเลือกเพื่อรักษาความสัมพันธ์ 1:1)
+      leaves[idx] = {
+        ...leaves[idx],
+        name: names[0],
+        start: ranges[0].start,
+        end: ranges[0].end,
+        type,
+        period,
+        note
+      };
+
+      // หากมีการเลือกชื่อหลายคนขณะแก้ไข ให้เพิ่มรายชื่อคนที่เหลือเป็นรายการวันลาใหม่เพื่ออำนวยความสะดวก
+      if(names.length > 1){
+        for(let i=1; i<names.length; i++){
+          leaves.push({
+            id: Date.now() + Math.random().toString(16).slice(2) + '_' + i,
+            name: names[i],
+            start: ranges[0].start,
+            end: ranges[0].end,
+            type,
+            period,
+            note
+          });
+        }
+      }
+    }
+    // รีเซ็ตโหมดการแก้ไขกลับเป็นโหมดเพิ่มข้อมูลปกติ
+    editingLeaveId = null;
+    document.getElementById('form-title').textContent = 'เพิ่มวันลา';
+    document.getElementById('btn-save').textContent = 'บันทึกวันลา';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+
+  } else {
+    // === กรณีอยู่ในโหมดบันทึกตามปกติ ===
+    names.forEach(name=>{
+      ranges.forEach(r=>{
+        leaves.push({
+          id: Date.now() + Math.random().toString(16).slice(2),
+          name, start:r.start, end:r.end, type, period, note
+        });
       });
     });
-  });
+  }
   
   await saveLeaves();
 
