@@ -1933,9 +1933,19 @@
         };
 
         // ----------------- STATE CONSTANTS -----------------
-        let currentYear = 2026;
-        let currentMonth = 7; // กรกฎาคม
-        let selectedDateStr = "2026-07-14"; // Default to July 14th
+     // ค่าเริ่มต้น: ใช้วันที่ปัจจุบันจริง (active ที่วันนี้) แต่ยังเลื่อนดูเดือน/วันอื่นได้ตามปกติ
+const __todayObj = new Date();
+const __minMonth = new Date(2026, 6, 1);   // ขอบเขตล่างของตัวเลือกเดือน (ก.ค. 2569)
+const __maxMonth = new Date(2027, 4, 1);   // ขอบเขตบนของตัวเลือกเดือน (พ.ค. 2570)
+const __todayMonthObj = new Date(__todayObj.getFullYear(), __todayObj.getMonth(), 1);
+const __clampedMonthObj = __todayMonthObj < __minMonth ? __minMonth : (__todayMonthObj > __maxMonth ? __maxMonth : __todayMonthObj);
+
+let currentYear = __clampedMonthObj.getFullYear();
+let currentMonth = __clampedMonthObj.getMonth() + 1;
+// ถ้าวันนี้อยู่ในเดือนที่แสดงจริง ให้ active ที่วันนี้ ไม่งั้น fallback ไปวันที่ 1 ของเดือนที่แสดง
+let selectedDateStr = (__clampedMonthObj.getTime() === __todayMonthObj.getTime())
+    ? `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(__todayObj.getDate()).padStart(2, '0')}`
+    : `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
         
         let leaveRecords = {};
         let parsedLeaveTypes = {}; // เก็บประเภทการลา (เช่น ประชุม)
