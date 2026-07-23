@@ -961,11 +961,11 @@
                                 </span>
                             </div>
 
-                            <!-- Calendar Grid Wrapper for Horizontal Scrolling on Mobile -->
-                            <div class="overflow-x-auto w-full custom-scrollbar pb-2">
-                                <div class="min-w-[700px] lg:min-w-full flex flex-col h-full">
+                            <!-- Calendar Grid Wrapper -->
+                            <div class="w-full pb-2">
+                                <div class="w-full flex flex-col h-full">
                                     <!-- Calendar Week Header -->
-                                    <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-500 uppercase tracking-wider mb-2">
+                                    <div class="grid grid-cols-7 gap-0.5 sm:gap-1 text-center font-bold text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1 sm:mb-2">
                                         <div class="text-rose-500">อา.</div>
                                         <div>จ.</div>
                                         <div>อ.</div>
@@ -976,7 +976,7 @@
                                     </div>
 
                                     <!-- Calendar Grid Container -->
-                                    <div class="grid grid-cols-7 gap-1.5 flex-grow" id="calendar-grid">
+                                    <div class="grid grid-cols-7 gap-1 sm:gap-1.5 flex-grow" id="calendar-grid">
                                         <!-- Dynamic Calendar Cells -->
                                     </div>
                                 </div>
@@ -2682,7 +2682,7 @@
 
             for (let i = 0; i < startDayOfWeek; i++) {
                 const empty = document.createElement("div");
-                empty.className = "bg-slate-50 border border-transparent min-h-[100px] rounded-2xl";
+                empty.className = "bg-slate-50 border border-transparent min-h-[80px] sm:min-h-[100px] rounded-lg sm:rounded-2xl";
                 grid.appendChild(empty);
             }
 
@@ -2696,18 +2696,18 @@
                 const result = calculateDutiesForDate(dateStr);
                 
                 const cell = document.createElement("div");
-                cell.className = `min-h-[100px] border rounded-2xl p-2 transition-all cursor-pointer flex flex-col justify-between group relative ${
+                cell.className = `min-h-[80px] sm:min-h-[100px] border rounded-lg sm:rounded-2xl p-1 sm:p-2.5 transition-all cursor-pointer flex flex-col justify-between group relative ${
                     dateStr === selectedDateStr 
-                        ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/10 shadow-sm' 
+                        ? 'border-amber-500 ring-1 sm:ring-2 ring-amber-500/20 bg-amber-50/10 shadow-sm' 
                         : 'border-slate-100 bg-white hover:border-amber-200 hover:shadow-md'
                 }`;
                 cell.onclick = () => selectDate(dateStr);
 
                 const header = document.createElement("div");
-                header.className = "flex justify-between items-start w-full";
+                header.className = "flex justify-between items-start w-full gap-0.5 flex-wrap";
                 
                 const dayNum = document.createElement("span");
-                dayNum.className = `text-sm font-bold ${
+                dayNum.className = `text-[10px] sm:text-sm font-bold ${
                     result.isOff ? 'text-slate-400' : 'text-slate-700'
                 } ${dateStr === selectedDateStr ? 'text-amber-700' : ''}`;
                 dayNum.textContent = day;
@@ -2718,14 +2718,14 @@
                     if (result.reason.includes("วันหยุดราชการ")) holidayCount++;
                     if (result.reason.includes("วันหยุดราชการ") || result.reason.includes("นักขัตฤกษ์")) {
                         const statusBadge = document.createElement("span");
-                        statusBadge.className = "text-[9px] px-1.5 py-0.5 rounded font-semibold bg-rose-50 text-rose-600 border border-rose-100 text-center leading-tight";
+                        statusBadge.className = "text-[7px] sm:text-[9px] px-1 sm:px-1.5 py-0.5 rounded font-semibold bg-rose-50 text-rose-600 border border-rose-100 text-center leading-tight break-words max-w-full";
                         statusBadge.textContent = "วันหยุด";
                         header.appendChild(statusBadge);
                     }
                 } else {
                     if (result.staffMappingInfo.inherited) {
                         const inheritBadge = document.createElement("span");
-                        inheritBadge.className = "text-[8px] bg-sky-50 text-sky-600 font-medium px-1 rounded-md"
+                        inheritBadge.className = "text-[7px] sm:text-[8px] bg-sky-50 text-sky-600 font-medium px-1 rounded-md"
                         inheritBadge.title = "สืบทอดตารางจากเดือนก่อนหน้า";
                         inheritBadge.innerHTML = "<i class='fa-solid fa-clock-rotate-left'></i>";
                         header.appendChild(inheritBadge);
@@ -2733,7 +2733,7 @@
 
                     if (result.arvInfo.isARV) {
                         const arvBadge = document.createElement("span");
-                        arvBadge.className = "text-[8px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded-full";
+                        arvBadge.className = "text-[7px] sm:text-[8px] bg-amber-100 text-amber-800 font-bold px-1 sm:px-1.5 py-0.5 rounded-full";
                         arvBadge.textContent = "ARV";
                         header.appendChild(arvBadge);
                     }
@@ -2741,7 +2741,7 @@
                 cell.appendChild(header);
 
                 const body = document.createElement("div");
-                body.className = "mt-2 space-y-1 w-full text-[10px]";
+                body.className = "mt-1 sm:mt-2 space-y-0.5 w-full text-[8px] sm:text-[10px]";
 
                 if (!result.isOff) {
                     const opd1Staff = extractCleanName(result.duties['OPD1']);
@@ -2749,13 +2749,13 @@
                     const ipdStaff = extractCleanName(result.duties['IPD']);
 
                     const rowText = document.createElement("div");
-                    rowText.className = "text-slate-500 flex items-start justify-between gap-1 leading-tight";
-                    rowText.innerHTML = `<span class="shrink-0">OPD:</span> <strong class="text-slate-700 text-right break-words">${opd1Staff}, ${opd2Staff}</strong>`;
+                    rowText.className = "text-slate-500 flex flex-col lg:flex-row items-start lg:justify-between gap-0 sm:gap-1 leading-[1.2] sm:leading-tight";
+                    rowText.innerHTML = `<span class="shrink-0 text-[7px] sm:text-[10px]">OPD:</span> <strong class="text-slate-700 text-left lg:text-right break-words font-semibold">${opd1Staff}, ${opd2Staff}</strong>`;
                     body.appendChild(rowText);
 
                     const ipdText = document.createElement("div");
-                    ipdText.className = "text-slate-500 flex items-start justify-between gap-1 leading-tight mt-0.5";
-                    ipdText.innerHTML = `<span class="shrink-0">IPD:</span> <strong class="text-slate-700 text-right break-words">${ipdStaff}</strong>`;
+                    ipdText.className = "text-slate-500 flex flex-col lg:flex-row items-start lg:justify-between gap-0 sm:gap-1 leading-[1.2] sm:leading-tight mt-0.5";
+                    ipdText.innerHTML = `<span class="shrink-0 text-[7px] sm:text-[10px]">IPD:</span> <strong class="text-slate-700 text-left lg:text-right break-words font-semibold">${ipdStaff}</strong>`;
                     body.appendChild(ipdText);
 
                     for (const [pos, person] of Object.entries(result.duties)) {
@@ -2767,7 +2767,7 @@
 
                     if (result.activeLeaves.length > 0) {
                         const leaveInfo = document.createElement("div");
-                        leaveInfo.className = "text-[9px] text-rose-600 bg-rose-50 rounded px-1 py-0.5 mt-1 font-semibold flex items-start gap-1 whitespace-normal break-words leading-tight";
+                        leaveInfo.className = "text-[7px] sm:text-[9px] text-rose-600 bg-rose-50 rounded px-1 py-0.5 mt-0.5 sm:mt-1 font-semibold flex items-start gap-0.5 sm:gap-1 whitespace-normal break-words leading-tight";
                         
                         const meetings = result.activeLeaves.filter(name => getLeaveTypeForStaffOnDate(dateStr, name) === "ประชุม");
                         const nonMeetings = result.activeLeaves.filter(name => getLeaveTypeForStaffOnDate(dateStr, name) !== "ประชุม");
@@ -2779,12 +2779,12 @@
                             displayStr += `ลา: ${nonMeetings.join(",")}`;
                         }
 
-                        leaveInfo.innerHTML = `<i class="fa-solid fa-briefcase text-[8px] mt-[2px] shrink-0"></i> <span>${displayStr}</span>`;
+                        leaveInfo.innerHTML = `<i class="fa-solid fa-briefcase text-[7px] sm:text-[8px] mt-[1px] shrink-0"></i> <span>${displayStr}</span>`;
                         body.appendChild(leaveInfo);
                     }
                 } else {
                     const offTip = document.createElement("div");
-                    offTip.className = "text-slate-400 text-center py-1.5 italic text-[10px] whitespace-normal break-words";
+                    offTip.className = "text-slate-400 text-center py-1 italic text-[7px] sm:text-[10px] whitespace-normal break-words leading-tight";
                     offTip.textContent = result.reason.includes("วันหยุดราชการ") ? "วันหยุดราชการ" : "-";
                     body.appendChild(offTip);
                 }
@@ -3005,9 +3005,9 @@
                 if (cell.classList.contains("bg-slate-50")) continue;
 
                 if (i === targetIndex) {
-                    cell.className = "min-h-[100px] border rounded-2xl p-2 transition-all cursor-pointer flex flex-col justify-between group relative border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/10 shadow-sm";
+                    cell.className = "min-h-[80px] sm:min-h-[100px] border rounded-lg sm:rounded-2xl p-1 sm:p-2.5 transition-all cursor-pointer flex flex-col justify-between group relative border-amber-500 ring-1 sm:ring-2 ring-amber-500/20 bg-amber-50/10 shadow-sm";
                 } else {
-                    cell.className = "min-h-[100px] border rounded-2xl p-2 transition-all cursor-pointer flex flex-col justify-between group relative border-slate-100 bg-white hover:border-amber-200 hover:shadow-md";
+                    cell.className = "min-h-[80px] sm:min-h-[100px] border rounded-lg sm:rounded-2xl p-1 sm:p-2.5 transition-all cursor-pointer flex flex-col justify-between group relative border-slate-100 bg-white hover:border-amber-200 hover:shadow-md";
                 }
             }
         }
