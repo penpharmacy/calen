@@ -891,7 +891,7 @@
                 <!-- TOP ACTIONS & MONTH NAVIGATION -->
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <!-- Month Picker -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors">
                             <i class="fa-solid fa-chevron-left text-sm"></i>
                         </button>
@@ -900,6 +900,11 @@
                         </select>
                         <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors">
                             <i class="fa-solid fa-chevron-right text-sm"></i>
+                        </button>
+
+                        <!-- ปุ่มตั้งค่าคลินิก ARV แบบกำหนดเองข้ามอุปกรณ์ -->
+                        <button onclick="openArvModal()" class="ml-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5 border border-amber-200">
+                            <i class="fa-solid fa-gear"></i> ตั้งค่าคลินิก ARV
                         </button>
                     </div>
 
@@ -1038,6 +1043,38 @@
             </div>
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
                 <button onclick="closeModal()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition-colors shadow-sm">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARV Config Modal Component -->
+    <div id="arv-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-11/12 max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col" id="arv-modal-content">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-lg"><i class="fa-solid fa-gear text-amber-500 mr-2"></i>ตั้งค่าวันคลินิก ARV</h3>
+                <button onclick="closeArvModal()" class="text-slate-400 hover:text-rose-500 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5 flex flex-col gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div class="text-sm text-slate-600 mb-2">
+                    จัดการวันคลินิก ARV สำหรับเดือน <strong id="arv-modal-month-label" class="text-amber-600"></strong><br>
+                    <span class="text-xs text-slate-400">ระบบจะจำค่าที่ตั้งไว้ข้ามอุปกรณ์ทุกเครื่องตลอดไป</span>
+                </div>
+                
+                <!-- Add new date -->
+                <div class="flex gap-2">
+                    <input type="date" id="new-arv-date" class="flex-grow border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                    <button onclick="addCustomArvDate()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-semibold transition-colors">เพิ่ม</button>
+                </div>
+
+                <!-- List of dates -->
+                <div id="arv-dates-list" class="flex flex-col gap-2 mt-2">
+                    <!-- Dynamic content rendered here -->
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeArvModal()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold transition-colors shadow-sm">เสร็จสิ้น</button>
             </div>
         </div>
     </div>
@@ -1443,7 +1480,8 @@
 
     function leavesOnDate(iso){
       const d = parseISO(iso);
-      return leaves.filter(l => parseISO(l.start) <= d && d <= parseISO(l.end));
+      // Ignored SYSTEM_ entries from appearing in general leave lists
+      return leaves.filter(l => parseISO(l.start) <= d && d <= parseISO(l.end) && !l.name.startsWith('SYSTEM_'));
     }
 
     function periodSuffix(period){
@@ -1596,7 +1634,8 @@
       const wrap = document.getElementById('list-wrap');
       const todayStr = toISO(new Date()); 
       
-      const activeLeaves = leaves.filter(l => l.end >= todayStr);
+      // Filter out SYSTEM_ records from list view
+      const activeLeaves = leaves.filter(l => l.end >= todayStr && !l.name.startsWith('SYSTEM_'));
 
       if(activeLeaves.length === 0){
         wrap.innerHTML = `<div class="empty-note">ไม่มีข้อมูลประวัติวันลาในปัจจุบันและอนาคต</div>`;
@@ -2330,7 +2369,7 @@
         }
 
         // ----------------- ARV CLINIC CALCULATION (UPDATED LOGIC) -----------------
-        function isSecondTuesdayOrThursday(dateStr) {
+        function isDefaultARV(dateStr) {
             const d = new Date(dateStr);
             const year = d.getFullYear();
             const month = d.getMonth();
@@ -2352,17 +2391,25 @@
             const secondTuesdayDate = firstTuesdayDate + 7;
             
             // 3. วันพฤหัสบดี ARV ต้องเป็นวันพฤหัสบดีที่ตามหลังวันอังคารที่ 2 ของเดือนเสมอ (บวกไปอีก 2 วัน)
-            // ทำให้การันตีว่าทั้งคู่อยู่ในสัปดาห์เดียวกันเสมอ
             const arvThursdayDate = secondTuesdayDate + 2;
 
             if (currentDate === secondTuesdayDate) {
-                return { isARV: true, type: "วันอังคารที่สองของเดือน" };
+                return { isARV: true, type: "ระบบอัตโนมัติ" };
             } else if (currentDate === arvThursdayDate) {
-                // จะเป็นวันพฤหัสบดีที่เท่าไหร่ของเดือนไม่สำคัญ แต่จะเป็นพฤหัสบดีที่ตามหลังอังคารที่สอง
-                return { isARV: true, type: "วันพฤหัสบดีในสัปดาห์เดียวกับอังคารที่สอง" };
+                return { isARV: true, type: "ระบบอัตโนมัติ" };
             }
-
             return { isARV: false, type: "" };
+        }
+
+        function isSecondTuesdayOrThursday(dateStr) {
+            // เช็คว่ามีการตั้งค่ายกเลิก หรือเพิ่มเองข้ามอุปกรณ์หรือไม่ (อ้างอิงจากฐานข้อมูลหลัก)
+            if (leaves.some(l => l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr)) {
+                return { isARV: false, type: "" };
+            }
+            if (leaves.some(l => l.name === "SYSTEM_ARV_CUSTOM" && l.start === dateStr)) {
+                return { isARV: true, type: "กำหนดเอง" };
+            }
+            return isDefaultARV(dateStr);
         }
         // --------------------------------------------------------------------------
 
@@ -3178,6 +3225,143 @@
             showToast("สลับเปลี่ยนใช้ระบบจำลองข้อมูลเรียบร้อย");
             updateCalendar();
             selectDate(selectedDateStr);
+        }
+
+        // ----------------- ARV CONFIGURATION MODAL (CROSS-DEVICE) -----------------
+        function openArvModal() {
+            const modal = document.getElementById('arv-modal');
+            const modalContent = document.getElementById('arv-modal-content');
+            
+            const thMonthText = new Date(currentYear, currentMonth - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+            document.getElementById('arv-modal-month-label').textContent = thMonthText;
+            
+            // Limit Date picker roughly to current selection
+            const minDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+            const maxDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(new Date(currentYear, currentMonth, 0).getDate()).padStart(2, '0')}`;
+            const input = document.getElementById('new-arv-date');
+            input.min = minDate;
+            input.max = maxDate;
+            input.value = minDate;
+
+            renderArvModalList();
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeArvModal() {
+            const modal = document.getElementById('arv-modal');
+            const modalContent = document.getElementById('arv-modal-content');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function renderArvModalList() {
+            const listContainer = document.getElementById('arv-dates-list');
+            listContainer.innerHTML = '';
+            
+            const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+            let hasAny = false;
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const arvInfo = isSecondTuesdayOrThursday(dateStr);
+                
+                if (arvInfo.isARV) {
+                    hasAny = true;
+                    const dObj = new Date(dateStr);
+                    const thDate = dObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const thWeekday = dObj.toLocaleDateString('th-TH', { weekday: 'short' });
+                    
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center p-3 bg-amber-50/50 border border-amber-100 rounded-xl";
+                    item.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-800 text-sm">${thDate} (${thWeekday})</span>
+                            <span class="text-[10px] text-amber-600">${arvInfo.type}</span>
+                        </div>
+                        <button onclick="removeArvDate('${dateStr}')" class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 hover:bg-rose-200 flex items-center justify-center transition-colors shadow-sm" title="ยกเลิกคลินิก ARV วันนี้">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    `;
+                    listContainer.appendChild(item);
+                }
+            }
+
+            if (!hasAny) {
+                listContainer.innerHTML = `<div class="text-center p-4 text-sm text-slate-400 italic">ไม่มีคลินิก ARV ในเดือนนี้</div>`;
+            }
+        }
+
+        async function addCustomArvDate() {
+            const input = document.getElementById('new-arv-date');
+            const dateStr = input.value;
+            if (!dateStr) return;
+            
+            // Remove CANCEL override if exists
+            leaves = leaves.filter(l => !(l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr));
+            
+            // Add CUSTOM override if not default
+            const defaultInfo = isDefaultARV(dateStr);
+            if (!defaultInfo.isARV) {
+                if (!leaves.some(l => l.name === "SYSTEM_ARV_CUSTOM" && l.start === dateStr)) {
+                    leaves.push({
+                        id: 'arvc_' + Date.now() + Math.random().toString(16).slice(2),
+                        name: "SYSTEM_ARV_CUSTOM",
+                        start: dateStr,
+                        end: dateStr,
+                        type: "ARV",
+                        period: "เต็มวัน",
+                        note: "กำหนดเอง"
+                    });
+                }
+            }
+
+            await saveLeaves(); // Sync across devices!
+            renderArvModalList();
+            updateCalendar();
+            if(dateStr.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)) {
+                selectDate(selectedDateStr);
+            }
+        }
+
+        async function removeArvDate(dateStr) {
+            // Remove CUSTOM override if exists
+            leaves = leaves.filter(l => !(l.name === "SYSTEM_ARV_CUSTOM" && l.start === dateStr));
+            
+            // Add CANCEL override if it is a default date
+            const defaultInfo = isDefaultARV(dateStr);
+            if (defaultInfo.isARV) {
+                if (!leaves.some(l => l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr)) {
+                    leaves.push({
+                        id: 'arvx_' + Date.now() + Math.random().toString(16).slice(2),
+                        name: "SYSTEM_ARV_CANCEL",
+                        start: dateStr,
+                        end: dateStr,
+                        type: "ARV",
+                        period: "เต็มวัน",
+                        note: "ยกเลิก"
+                    });
+                }
+            }
+
+            await saveLeaves(); // Sync across devices!
+            renderArvModalList();
+            updateCalendar();
+            if(dateStr.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)) {
+                selectDate(selectedDateStr);
+            }
         }
     </script>
 </body>
