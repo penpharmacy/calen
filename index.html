@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -1933,6 +1933,12 @@
               renderMonths();
               renderList();
               if(selectedDayISO) showDayDetail(selectedDayISO);
+              
+              // ซิงก์ตาราง Tab 2 แบบเรียลไทม์เมื่อมีการเปลี่ยนแปลงข้ามอุปกรณ์
+              if (typeof updateCalendar === 'function') {
+                  updateCalendar();
+                  if (typeof selectedDateStr !== 'undefined' && selectedDateStr) selectDate(selectedDateStr);
+              }
             }
             setSyncBadge('ok', '');
           }
@@ -1959,6 +1965,12 @@
       renderList();
 
       showDayDetail(toISO(new Date()));
+      
+      // อัปเดตตาราง Tab 2 เพื่อให้ดึงค่า ARV ที่โหลดจาก Sheet มาแสดงผลทันที
+      if (typeof updateCalendar === 'function') {
+          updateCalendar();
+          if (typeof selectedDateStr !== 'undefined' && selectedDateStr) selectDate(selectedDateStr);
+      }
 
       setInterval(backgroundSync, 3000);
     })();
@@ -2391,6 +2403,7 @@
             const secondTuesdayDate = firstTuesdayDate + 7;
             
             // 3. วันพฤหัสบดี ARV ต้องเป็นวันพฤหัสบดีที่ตามหลังวันอังคารที่ 2 ของเดือนเสมอ (บวกไปอีก 2 วัน)
+            // ทำให้การันตีว่าทั้งคู่อยู่ในสัปดาห์เดียวกันเสมอ
             const arvThursdayDate = secondTuesdayDate + 2;
 
             if (currentDate === secondTuesdayDate) {
