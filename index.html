@@ -2012,7 +2012,7 @@
         // ----------------- STATE CONSTANTS -----------------
         const __todayObj = new Date();
         const __minMonth = new Date(2026, 6, 1);   // ขอบเขตล่างของตัวเลือกเดือน (ก.ค. 2569)
-        const __maxMonth = new Date(2027, 4, 1);   // ขอบเขตบนของตัวเลือกเดือน (พ.ค. 2570)
+        const __maxMonth = new Date(2050, 11, 31);   // ขอบเขตบนของตัวเลือกเดือน ขยายไปถึงสิ้นปี 2050
         const __todayMonthObj = new Date(__todayObj.getFullYear(), __todayObj.getMonth(), 1);
         const __clampedMonthObj = __todayMonthObj < __minMonth ? __minMonth : (__todayMonthObj > __maxMonth ? __maxMonth : __todayMonthObj);
 
@@ -2056,7 +2056,7 @@
             const select = document.getElementById("month-select");
             select.innerHTML = "";
             const start = new Date(2026, 6, 1); // July 2026
-            const end = new Date(2027, 4, 31);   // May 2027
+            const end = new Date(2050, 11, 31);   // ขยายไปถึงธันวาคม 2050 (ระบบคำนวณอัตโนมัติ)
 
             let curr = new Date(start);
             while (curr <= end) {
@@ -2344,6 +2344,27 @@
         }
 
         // ----------------- BUSINESS LOGIC ENGINE -----------------
+        function getDynamicStaffMap(year, month) {
+            const key = `${year}-${String(month).padStart(2, '0')}`;
+            if (monthlyStaff[key]) return monthlyStaff[key]; // ถ้ามีข้อมูลที่ระบุไว้ดั้งเดิม ให้ใช้ค่าเดิม
+
+            // คำนวณรอบสลับเวรอัตโนมัติในกรณีที่เกินข้อมูลที่ระบุไว้ (อิงตามฐาน 2026-06)
+            const baseYear = 2026;
+            const baseMonth = 6;
+            const monthsDiff = (year - baseYear) * 12 + (month - baseMonth);
+            
+            const staffList = ['เพ็ญ', 'กิ้ม', 'แอ๋ม', 'เบิด', 'หลิว', 'แปง']; // บุคลากรตามตำแหน่ง A-F ของฐาน 2026-06
+            const shift = ((monthsDiff % 6) + 6) % 6; 
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            
+            const newMap = {};
+            for (let i = 0; i < 6; i++) {
+                newMap[letters[i]] = staffList[(i + shift) % 6];
+            }
+            monthlyStaff[key] = newMap; // จำค่าไว้ในหน่วยความจำ
+            return newMap;
+        }
+
         function getStaffMapForDate(dateStr) {
             const d = new Date(dateStr);
             const year = d.getFullYear();
@@ -2366,14 +2387,14 @@
                 }
                 const key = `${prevYear}-${String(prevMonth).padStart(2, '0')}`;
                 return {
-                    map: monthlyStaff[key] || monthlyStaff["2026-06"],
+                    map: getDynamicStaffMap(prevYear, prevMonth),
                     inherited: true,
                     from: key
                 };
             } else {
                 const key = `${year}-${String(month).padStart(2, '0')}`;
                 return {
-                    map: monthlyStaff[key] || monthlyStaff["2026-07"],
+                    map: getDynamicStaffMap(year, month),
                     inherited: false,
                     from: key
                 };
