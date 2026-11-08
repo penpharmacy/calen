@@ -1,4 +1,5 @@
 
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -9,13 +10,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter, Kanit & Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- PapaParse for CSV Parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <style>
+        :root {
+            /* Dynamic Palette Variables (Default: Violet/Rose) */
+            --theme-primary: #8B5CF6;
+            --theme-primary-dark: #6D28D9;
+            --theme-primary-soft: #F5F3FF;
+            --theme-secondary: #EC4899;
+            --theme-secondary-soft: #FDF2F8;
+            --theme-accent-gradient: linear-gradient(135deg, #8B5CF6, #6D28D9);
+            --theme-header-border: rgba(139, 92, 246, 0.3);
+            --theme-nav-active-bg: #8B5CF6;
+            --theme-nav-active-text: #ffffff;
+        }
+
         body {
             font-family: 'Sarabun', 'Inter', sans-serif;
             background-color: #f8fafc;
@@ -37,6 +51,17 @@
             background: #94a3b8;
         }
 
+        /* Dynamic header border & theme buttons */
+        .dynamic-header-border {
+            border-bottom: 2px solid var(--theme-header-border);
+            transition: border-color 0.4s ease;
+        }
+        .dynamic-active-tab {
+            background: var(--theme-primary) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
         /* ===== CSS FOR TAB 1: Leave Calendar (Scoped to prevent conflicts) ===== */
         .leave-calendar-theme {
             --bg: #F4F2F9; 
@@ -44,23 +69,24 @@
             --ink: #2C243B; 
             --muted: #7A708A; 
             --border: #E6E2F0; 
-            --accent: #8B5CF6; 
-            --accent-dark: #6D28D9; 
-            --accent-soft: #F5F3FF; 
-            --accent2: #EC4899; 
-            --accent2-soft: #FDF2F8; 
+            --accent: var(--theme-primary); 
+            --accent-dark: var(--theme-primary-dark); 
+            --accent-soft: var(--theme-primary-soft); 
+            --accent2: var(--theme-secondary); 
+            --accent2-soft: var(--theme-secondary-soft); 
             --sun: #F59E0B;
             --sun-soft: #FEF3C7;
             --danger: #EF4444;
             
             box-sizing: border-box;
             background: 
-                radial-gradient(circle at 10% 0%, #F5F3FF 0%, transparent 45%), 
-                radial-gradient(circle at 90% 10%, #FDF2F8 0%, transparent 40%), 
+                radial-gradient(circle at 10% 0%, var(--accent-soft) 0%, transparent 45%), 
+                radial-gradient(circle at 90% 10%, var(--accent2-soft) 0%, transparent 40%), 
                 var(--bg);
             color: var(--ink);
             padding: 28px 16px 60px;
             min-height: calc(100vh - 80px);
+            transition: background 0.5s ease;
         }
         
         .leave-calendar-theme * {
@@ -106,12 +132,12 @@
         
         .leave-calendar-theme .layout {
             display: grid;
-            grid-template-columns: 260px 1fr;
+            grid-template-columns: 280px 1fr;
             gap: 20px;
             align-items: start;
         }
         
-        @media (max-width: 820px) {
+        @media (max-width: 860px) {
             .leave-calendar-theme .layout {
                 grid-template-columns: 1fr;
             }
@@ -124,6 +150,7 @@
             border-radius: 14px;
             padding: 18px;
             box-shadow: 0 6px 18px rgba(44,36,59,0.05);
+            transition: border-color 0.4s ease;
         }
         
         .leave-calendar-theme .panel h3 {
@@ -206,13 +233,13 @@
             font-weight: 600;
             font-size: 15px;
             cursor: pointer;
-            box-shadow: 0 6px 14px rgba(139,92,246,0.3);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
             transition: transform .12s ease, box-shadow .12s ease;
         }
         
         .leave-calendar-theme button.primary:hover {
             transform: translateY(-1px); 
-            box-shadow: 0 8px 18px rgba(139,92,246,0.4);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.22);
         }
         
         .leave-calendar-theme button.primary:active {
@@ -296,6 +323,7 @@
             border-radius: 10px;
             background: var(--accent-soft);
             display: none;
+            border: 1px solid var(--border);
         }
         
         .leave-calendar-theme .day-detail h4 {
@@ -326,9 +354,9 @@
             gap: 8px;
         }
         
-        .leave-calendar-theme .detail-entry .edit,
-        .leave-calendar-theme .detail-entry .del,
-        .leave-calendar-theme .edit-row,
+        .leave-calendar-theme .detail-entry .edit, 
+        .leave-calendar-theme .detail-entry .del, 
+        .leave-calendar-theme .edit-row, 
         .leave-calendar-theme .del-row {
             border: none;
             background: none;
@@ -564,12 +592,15 @@
             background: var(--accent-soft);
             color: var(--accent-dark);
             border: none;
-            width: 32px;
-            height: 32px;
+            min-width: 34px;
+            height: 34px;
+            padding: 0 8px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
             font-family: 'Kanit', sans-serif;
+            transition: all 0.15s ease;
         }
         
         .leave-calendar-theme .nav-btns button:hover {
@@ -587,9 +618,10 @@
         }
         
         .leave-calendar-theme .months-head .range-title {
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--accent-dark);
+            font-family: 'Kanit', sans-serif;
         }
         
         .leave-calendar-theme .months-row {
@@ -724,26 +756,62 @@
             color: var(--muted);
             margin-top: 1px;
         }
+
+        /* ===== MONTHLY SUMMARY COMPONENT STYLING ===== */
+        .leave-summary-card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(44,36,59,0.04);
+            margin-top: 16px;
+            transition: all 0.3s ease;
+        }
+        .leave-summary-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+        .stat-user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #FAFAFC;
+            margin-bottom: 6px;
+            transition: background 0.15s ease;
+        }
+        .stat-user-row:hover {
+            background: var(--accent-soft);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col custom-scrollbar">
 
-    <!-- UNIFIED DASHBOARD NAVIGATION HEADER -->
-    <header class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white shadow-xl sticky top-0 z-50 border-b border-amber-500/20">
+    <!-- UNIFIED DASHBOARD NAVIGATION HEADER (WITH DYNAMIC COLOR THEME) -->
+    <header class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white shadow-xl sticky top-0 z-50 dynamic-header-border">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-amber-500/10 rounded-xl backdrop-blur-md border border-amber-500/20">
-                    <i class="fa-solid fa-users-gear text-2xl text-amber-400"></i>
+                <div class="p-2.5 rounded-xl backdrop-blur-md border border-white/10" style="background: rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-users-gear text-2xl" id="header-icon" style="color: var(--theme-primary);"></i>
                 </div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold tracking-wide">ตารางปฏิบัติงาน วันลากลุ่มคนดี</h1>
-                    <p class="text-[11px] text-amber-300/80 font-light mt-0.5"></p>
+                    <p class="text-[11px] font-light mt-0.5 text-slate-400" id="header-theme-label">ระบบสลับเวรและปฏิทินวันลาอัตโนมัติ</p>
                 </div>
             </div>
             
             <!-- Navigation Tabs Switching Area -->
             <div class="flex bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 backdrop-blur-sm shadow-inner shrink-0">
-                <button id="tab-btn-1" onclick="switchTab('tab-1')" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 shadow-md transition-all duration-200 flex items-center gap-2">
+                <button id="tab-btn-1" onclick="switchTab('tab-1')" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg dynamic-active-tab transition-all duration-200 flex items-center gap-2">
                     <i class="fa-solid fa-plane-departure"></i> ปฏิทินวันลา
                 </button>
                 <button id="tab-btn-2" onclick="switchTab('tab-2')" class="px-4 py-2 text-xs md:text-sm font-medium rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200 flex items-center gap-2 ml-1">
@@ -762,11 +830,12 @@
                 <header class="top">
                     <div>
                         <h1>ปฏิทินวันลา</h1>
-                        <p><strong style="color: var(--accent-dark);"></strong></p>
+                        <p><strong style="color: var(--accent-dark);" id="tab1-month-badge"></strong></p>
                     </div>
                 </header>
 
                 <div class="layout">
+                    <!-- LEFT COLUMN: FORM & SUMMARY STATS -->
                     <div>
                         <div class="panel" id="form-panel">
                             <h3 id="form-title">เพิ่มวันลา</h3>
@@ -832,9 +901,25 @@
                             <button class="primary" id="btn-save">บันทึกวันลา</button>
                             <button class="secondary" id="btn-cancel-edit" style="display:none;">ยกเลิกการแก้ไข</button>
                         </div>
+
+                        <!-- NEW: MONTHLY LEAVE SUMMARY CARD (TAB 1) -->
+                        <div class="leave-summary-card" id="monthly-leave-summary-card">
+                            <div class="leave-summary-title">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-chart-pie" style="color: var(--accent);"></i>
+                                    <span>สรุปวันลาประจำเดือน</span>
+                                </span>
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background: var(--accent-soft); color: var(--accent-dark);" id="summary-month-name">-</span>
+                            </div>
+                            <div id="monthly-summary-list" class="space-y-1">
+                                <!-- Dynamic Render of Leave Totals by Person -->
+                            </div>
+                        </div>
+
                         <div class="storage-note" id="connection-note"></div>
                     </div>
 
+                    <!-- RIGHT COLUMN: MONTH CALENDAR & DETAILS -->
                     <div>
                         <div class="months-wrap">
                             <div class="rings">
@@ -844,6 +929,7 @@
                             <div class="months-head">
                                 <div class="range-title" id="range-title"></div>
                                 <div class="nav-btns">
+                                    <button type="button" onclick="openHolidayModal('tab1')" style="font-size:12px; width:auto; padding:0 10px;" title="ตั้งค่าวันหยุดราชการ">⚙️ ตั้งค่าวันหยุด</button>
                                     <button id="prev-month">‹</button>
                                     <button id="today-btn" style="font-size:12px;">วันนี้</button>
                                     <button id="next-month">›</button>
@@ -905,6 +991,11 @@
                         <!-- ปุ่มตั้งค่าคลินิก ARV แบบกำหนดเองข้ามอุปกรณ์ -->
                         <button onclick="openArvModal()" class="ml-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5 border border-amber-200">
                             <i class="fa-solid fa-gear"></i> ตั้งค่าคลินิก ARV
+                        </button>
+
+                        <!-- ปุ่มตั้งค่าวันหยุดราชการข้ามอุปกรณ์ -->
+                        <button onclick="openHolidayModal('tab2')" class="px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5 border border-rose-200">
+                            <i class="fa-solid fa-calendar-xmark"></i> ตั้งค่าวันหยุด
                         </button>
                     </div>
 
@@ -973,7 +1064,7 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: DAILY DETAIL -->
+                    <!-- RIGHT COLUMN: DAILY DETAIL & SUMMARY -->
                     <div class="lg:col-span-4 flex flex-col gap-6">
                         <!-- Daily Inspector Panel -->
                         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex-grow flex flex-col min-h-[450px]">
@@ -998,6 +1089,21 @@
                             <div id="detail-logs-block" class="hidden"></div>
                             <div id="detail-logs-container" class="hidden"></div>
                         </div>
+
+                        <!-- TAB 2 MONTHLY LEAVE SUMMARY MINI-CARD -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-700 uppercase flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-list-check text-amber-500"></i>
+                                    <span>สรุปวันลาประจำเดือนนี้</span>
+                                </span>
+                                <span class="text-[10px] text-slate-400 font-normal" id="tab2-summary-month-label">-</span>
+                            </h3>
+                            <div id="tab2-summary-list" class="space-y-1.5 text-xs">
+                                <!-- Dynamic Tab 2 summary items -->
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
@@ -1021,7 +1127,6 @@
 
     <!-- FOOTER -->
     <footer class="py-4 text-center text-xs mt-6 text-slate-400">
-        <!-- Copyright text omitted as per instruction -->
     </footer>
 
     <!-- Global Toast Component -->
@@ -1079,35 +1184,220 @@
         </div>
     </div>
 
+    <!-- Holiday Config Modal Component -->
+    <div id="holiday-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl w-11/12 max-w-md overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col" id="holiday-modal-content">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-lg"><i class="fa-solid fa-calendar-xmark text-rose-500 mr-2"></i>ตั้งค่าวันหยุดราชการ</h3>
+                <button onclick="closeHolidayModal()" class="text-slate-400 hover:text-rose-500 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5 flex flex-col gap-4 max-h-[65vh] overflow-y-auto custom-scrollbar">
+                <div class="text-sm text-slate-600">
+                    จัดการวันหยุดประจำเดือน <strong id="holiday-modal-month-label" class="text-rose-600"></strong><br>
+                    <span class="text-xs text-slate-400">การเพิ่มหรือยกเลิกวันหยุดจะมีผลทั้งในปฏิทินวันลาและตารางเวรทุกเครื่อง</span>
+                </div>
+                
+                <!-- Add new holiday date & name -->
+                <div class="flex flex-col gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <label class="text-xs font-bold text-slate-600">เพิ่มวันหยุดพิเศษ / วันหยุดราชการ</label>
+                    <div class="flex gap-2">
+                        <input type="date" id="new-holiday-date" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none bg-white">
+                        <input type="text" id="new-holiday-name" placeholder="ชื่อวันหยุด (เช่น หยุดพิเศษ)" class="flex-grow border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none bg-white">
+                    </div>
+                    <button onclick="addCustomHolidayDate()" class="mt-1 w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold transition-colors">
+                        + เพิ่มวันหยุด
+                    </button>
+                </div>
+
+                <!-- List of holidays in this month -->
+                <div>
+                    <div class="text-xs font-bold text-slate-500 uppercase mb-2">รายการวันหยุดในเดือนนี้</div>
+                    <div id="holiday-dates-list" class="flex flex-col gap-2">
+                        <!-- Dynamic content rendered here -->
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeHolidayModal()" class="px-5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-semibold transition-colors shadow-sm">เสร็จสิ้น</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- DYNAMIC MONTHLY PALETTES ENGINE (ไม่ซ้ำกันในแต่ละเดือน) -->
+    <!-- ======================================================== -->
+    <script>
+        // ชุดคู่สีธีมระดับพรีเมียม 12 รูปแบบสำหรับหมุนเวียนอัตโนมัติตามเดือน
+        const MONTHLY_THEME_PALETTES = [
+            {
+                name: "Violet Amethyst",
+                primary: "#8B5CF6", primaryDark: "#6D28D9", primarySoft: "#F5F3FF",
+                secondary: "#EC4899", secondarySoft: "#FDF2F8",
+                bg: "#F4F2F9", border: "#E6E2F0", label: "ธีมม่วงอเมทิสต์"
+            },
+            {
+                name: "Emerald Forest",
+                primary: "#10B981", primaryDark: "#047857", primarySoft: "#ECFDF5",
+                secondary: "#06B6D4", secondarySoft: "#ECFEFF",
+                bg: "#F0FDF4", border: "#D1FAE5", label: "ธีมเขียวมรกต"
+            },
+            {
+                name: "Ocean Sapphire",
+                primary: "#2563EB", primaryDark: "#1D4ED8", primarySoft: "#EFF6FF",
+                secondary: "#0284C7", secondarySoft: "#F0F9FF",
+                bg: "#F0F4FA", border: "#DBEAFE", label: "ธีมน้ำเงินแซฟไฟร์"
+            },
+            {
+                name: "Sunset Amber",
+                primary: "#F59E0B", primaryDark: "#D97706", primarySoft: "#FFFBEB",
+                secondary: "#EA580C", secondarySoft: "#FFF7ED",
+                bg: "#FDFBF7", border: "#FEF3C7", label: "ธีมทองแอมเบอร์"
+            },
+            {
+                name: "Rose Quartz",
+                primary: "#F43F5E", primaryDark: "#BE123C", primarySoft: "#FFF1F2",
+                secondary: "#D946EF", secondarySoft: "#FDF4FF",
+                bg: "#FAF4F6", border: "#FFE4E6", label: "ธีมชมพูกุหลาบ"
+            },
+            {
+                name: "Teal Lagoon",
+                primary: "#0D9488", primaryDark: "#0F766E", primarySoft: "#F0FDFA",
+                secondary: "#0891B2", secondarySoft: "#ECFEFF",
+                bg: "#F0F8F7", border: "#CCFBF1", label: "ธีมเขียวบลูเลากูน"
+            },
+            {
+                name: "Indigo Twilight",
+                primary: "#6366F1", primaryDark: "#4338CA", primarySoft: "#EEF2FF",
+                secondary: "#8B5CF6", secondarySoft: "#F5F3FF",
+                bg: "#F2F4FC", border: "#E0E7FF", label: "ธีมน้ำเงินอินดิโก"
+            },
+            {
+                name: "Ruby Crimson",
+                primary: "#E11D48", primaryDark: "#9F1239", primarySoft: "#FFF1F2",
+                secondary: "#F97316", secondarySoft: "#FFF7ED",
+                bg: "#FBF3F4", border: "#FFE4E6", label: "ธีมทับทิมสยาม"
+            },
+            {
+                name: "Warm Copper",
+                primary: "#D97706", primaryDark: "#B45309", primarySoft: "#FFFBEB",
+                secondary: "#B45309", secondarySoft: "#FEF3C7",
+                bg: "#FAF7F2", border: "#FDE68A", label: "ธีมทองแดงอบอุ่น"
+            },
+            {
+                name: "Nordic Cyan",
+                primary: "#06B6D4", primaryDark: "#0E7490", primarySoft: "#ECFEFF",
+                secondary: "#3B82F6", secondarySoft: "#EFF6FF",
+                bg: "#F0F9FB", border: "#CFFAFE", label: "ธีมนอร์ดิกไซแอน"
+            },
+            {
+                name: "Plum Royal",
+                primary: "#9333EA", primaryDark: "#7E22CE", primarySoft: "#FAF5FF",
+                secondary: "#C026D3", secondarySoft: "#FDF4FF",
+                bg: "#F7F2FA", border: "#F3E8FF", label: "ธีมม่วงรอยัลพลัม"
+            },
+            {
+                name: "Jade Botanic",
+                primary: "#059669", primaryDark: "#047857", primarySoft: "#ECFDF5",
+                secondary: "#84CC16", secondarySoft: "#F7FEE7",
+                bg: "#F1F8F4", border: "#D1FAE5", label: "ธีมหยกธรรมชาติ"
+            }
+        ];
+
+        // ฟังก์ชันสุ่มและผูกชุดสีตามเดือนโดยอัตโนมัติ (ไม่ซ้ำเมื่อข้ามเดือน)
+        function applyMonthlyColorTheme(year, monthIndex0) {
+            // สูตรคำนวณ seed แบบตายตัวต่อเดือน (ปี + เดือน) ทำให้เปิดมาสีสวย สม่ำเสมอ และเปลี่ยนทุกครั้งที่เปลี่ยนเดือน
+            const seed = (year * 12 + monthIndex0);
+            const paletteIndex = Math.abs(seed) % MONTHLY_THEME_PALETTES.length;
+            const p = MONTHLY_THEME_PALETTES[paletteIndex];
+
+            const root = document.documentElement;
+            root.style.setProperty('--theme-primary', p.primary);
+            root.style.setProperty('--theme-primary-dark', p.primaryDark);
+            root.style.setProperty('--theme-primary-soft', p.primarySoft);
+            root.style.setProperty('--theme-secondary', p.secondary);
+            root.style.setProperty('--theme-secondary-soft', p.secondarySoft);
+            root.style.setProperty('--theme-header-border', p.primary);
+
+            // อัปเดต CSS Variables ใน Leave Calendar Theme Container
+            const calTheme = document.querySelector('.leave-calendar-theme');
+            if (calTheme) {
+                calTheme.style.setProperty('--bg', p.bg);
+                calTheme.style.setProperty('--border', p.border);
+                calTheme.style.setProperty('--accent', p.primary);
+                calTheme.style.setProperty('--accent-dark', p.primaryDark);
+                calTheme.style.setProperty('--accent-soft', p.primarySoft);
+                calTheme.style.setProperty('--accent2', p.secondary);
+                calTheme.style.setProperty('--accent2-soft', p.secondarySoft);
+            }
+
+            // ปรับสีไอคอนหลักบนแถบนำทาง
+            const hIcon = document.getElementById('header-icon');
+            if (hIcon) hIcon.style.color = p.primary;
+
+            // ข้อความบอกธีมสีประจำเดือน
+            const themeLabel = document.getElementById('header-theme-label');
+            if (themeLabel) {
+                themeLabel.textContent = `ระบบตารางงาน · ${p.label}`;
+            }
+
+            // ปรับสีปุ่มแท็บที่ Active อยู่
+            updateTabButtonStyles();
+        }
+
+        function updateTabButtonStyles() {
+            const btn1 = document.getElementById('tab-btn-1');
+            const btn2 = document.getElementById('tab-btn-2');
+            const isTab1Active = !document.getElementById('tab-1').classList.contains('hidden');
+
+            if (isTab1Active) {
+                btn1.style.background = 'var(--theme-primary)';
+                btn1.style.color = '#ffffff';
+                btn2.style.background = '';
+                btn2.style.color = '';
+            } else {
+                btn2.style.background = 'var(--theme-primary)';
+                btn2.style.color = '#ffffff';
+                btn1.style.background = '';
+                btn1.style.color = '';
+            }
+        }
+    </script>
+
     <!-- TAB CONTROLLER & UI SCRIPT -->
     <script>
         function switchTab(tabId) {
-            // Hide both tab content wrappers
             document.querySelectorAll('.tab-content').forEach(function(el) {
                 el.classList.add('hidden');
             });
             
-            // Toggle active styles on navbar buttons
             const btn1 = document.getElementById('tab-btn-1');
             const btn2 = document.getElementById('tab-btn-2');
             
             btn1.className = "px-4 py-2 text-xs md:text-sm font-medium rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200 flex items-center gap-2";
             btn2.className = "px-4 py-2 text-xs md:text-sm font-medium rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200 flex items-center gap-2 ml-1";
             
-            // Show selected tab container and apply active styling
             const target = document.getElementById(tabId);
             if(target) {
                 target.classList.remove('hidden');
             }
             
             if(tabId === 'tab-1') {
-                btn1.className = "px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 shadow-md transition-all duration-200 flex items-center gap-2";
+                btn1.className = "px-4 py-2 text-xs md:text-sm font-semibold rounded-lg shadow-md transition-all duration-200 flex items-center gap-2";
+                if (typeof viewDate !== 'undefined') {
+                    applyMonthlyColorTheme(viewDate.getFullYear(), viewDate.getMonth());
+                }
             } else if(tabId === 'tab-2') {
-                btn2.className = "px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-amber-500 text-slate-950 shadow-md transition-all duration-200 flex items-center gap-2 ml-1";
+                btn2.className = "px-4 py-2 text-xs md:text-sm font-semibold rounded-lg shadow-md transition-all duration-200 flex items-center gap-2 ml-1";
+                if (typeof currentYear !== 'undefined' && typeof currentMonth !== 'undefined') {
+                    applyMonthlyColorTheme(currentYear, currentMonth - 1);
+                }
                 if(typeof updateCalendar === 'function') {
                     updateCalendar();
                 }
             }
+            updateTabButtonStyles();
         }
 
         // Modal Logic to replace alert()
@@ -1120,7 +1410,6 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // Trigger reflow for animation
             void modal.offsetWidth;
             
             modal.classList.remove('opacity-0');
@@ -1142,6 +1431,17 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }, 300);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2600);
         }
     </script>
 
@@ -1166,7 +1466,7 @@
     const parseISO = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
 
     // ==========================================
-    // ส่วนสร้างวันหยุดอัตโนมัติ (อัปเดตใหม่)
+    // ส่วนสร้างวันหยุดอัตโนมัติ
     // ==========================================
     const FIXED_HOLIDAYS = {
       "01-01": "วันขึ้นปีใหม่",
@@ -1198,25 +1498,22 @@
 
     let _holidayCache = {};
 
-    function getHoliday(isoStr) {
+    function getDefaultHoliday(isoStr) {
       const year = isoStr.split('-')[0];
       
       if (!_holidayCache[year]) {
         const holidays = {};
         
-        // 1. เพิ่มวันหยุดประจำปี (วันที่ตายตัว)
         for (const [mmdd, name] of Object.entries(FIXED_HOLIDAYS)) {
           holidays[`${year}-${mmdd}`] = name;
         }
         
-        // 2. เพิ่มวันหยุดจันทรคติ/วันหยุดพิเศษ ตามปีนั้นๆ
         if (LUNAR_AND_SPECIAL_HOLIDAYS[year]) {
           for (const [mmdd, name] of Object.entries(LUNAR_AND_SPECIAL_HOLIDAYS[year])) {
             holidays[`${year}-${mmdd}`] = name;
           }
         }
         
-        // 3. คำนวณวันหยุดชดเชยอัตโนมัติ
         const allDates = Object.keys(holidays).sort();
         const substitutions = {};
         let songkranSubAdded = false;
@@ -1253,7 +1550,19 @@
       
       return _holidayCache[year][isoStr];
     }
-    // ==========================================
+
+    function getHoliday(isoStr) {
+      if (typeof leaves !== 'undefined' && Array.isArray(leaves)) {
+        if (leaves.some(l => l.name === "SYSTEM_HOLIDAY_CANCEL" && l.start === isoStr)) {
+          return undefined;
+        }
+        const custom = leaves.find(l => l.name === "SYSTEM_HOLIDAY_CUSTOM" && l.start === isoStr);
+        if (custom) {
+          return custom.note || custom.type || "วันหยุดพิเศษ";
+        }
+      }
+      return getDefaultHoliday(isoStr);
+    }
 
     let leaves = [];
     let viewDate = new Date();
@@ -1411,7 +1720,7 @@
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
         const resp = await fetch(SHEET_WEB_APP_URL, { 
-          method: 'GET',
+          method: 'GET', 
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -1452,10 +1761,10 @@
       }
 
       try{
-        const resp = await fetch(SHEET_WEB_APP_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
+        const resp = await fetch(SHEET_WEB_APP_URL, { 
+          method: 'POST', 
+          headers: { 
+            'Content-Type': 'text/plain;charset=utf-8' 
           },
           body: JSON.stringify(leaves)
         });
@@ -1480,7 +1789,6 @@
 
     function leavesOnDate(iso){
       const d = parseISO(iso);
-      // Ignored SYSTEM_ entries from appearing in general leave lists
       return leaves.filter(l => parseISO(l.start) <= d && d <= parseISO(l.end) && !l.name.startsWith('SYSTEM_'));
     }
 
@@ -1511,10 +1819,164 @@
       return cells;
     }
 
+    // ========================================================
+    // ฟังก์ชันคำนวณและแสดงผล: สรุปวันลาประจำเดือน (NEW)
+    // ========================================================
+    function calculateMonthlyLeaveSummary(year, monthIndex0) {
+        const daysInMonth = new Date(year, monthIndex0 + 1, 0).getDate();
+        const monthStart = new Date(year, monthIndex0, 1);
+        const monthEnd = new Date(year, monthIndex0, daysInMonth);
+
+        // โครงสร้างเก็บสถิติ
+        const summary = {};
+        Object.keys(PEOPLE).forEach(name => {
+            summary[name] = {
+                totalDays: 0,
+                byType: {},
+                details: []
+            };
+        });
+
+        // วนลูปผ่านรายการลาทั้งหมดที่โหลดมา
+        leaves.forEach(l => {
+            if (l.name.startsWith('SYSTEM_') || !summary[l.name]) return;
+
+            const lStart = parseISO(l.start);
+            const lEnd = parseISO(l.end);
+
+            // ตรวจสอบว่าช่วงวันลามีส่วนซ้อนทับกับเดือนที่กำลังแสดงผลหรือไม่
+            if (lEnd < monthStart || lStart > monthEnd) return;
+
+            // หาวันที่เริ่มต้นและสิ้นสุดเฉพาะที่ตกอยู่ในเดือนนี้
+            const effectiveStart = lStart < monthStart ? new Date(monthStart) : new Date(lStart);
+            const effectiveEnd = lEnd > monthEnd ? new Date(monthEnd) : new Date(lEnd);
+
+            // นับจำนวนวัน
+            let count = 0;
+            let cur = new Date(effectiveStart);
+            while (cur <= effectiveEnd) {
+                count++;
+                cur.setDate(cur.getDate() + 1);
+            }
+
+            // คำนวณตามช่วงเวลา (เต็มวัน = 1, เช้า/บ่าย = 0.5)
+            let weight = 1.0;
+            if (l.period === 'เช้า' || l.period === 'บ่าย' || l.period === 'ครึ่งวันเช้า' || l.period === 'ครึ่งวันบ่าย') {
+                weight = 0.5;
+            }
+            const dayValue = count * weight;
+
+            summary[l.name].totalDays += dayValue;
+
+            const leaveType = l.type || 'ลา';
+            summary[l.name].byType[leaveType] = (summary[l.name].byType[leaveType] || 0) + dayValue;
+        });
+
+        return summary;
+    }
+
+    function renderMonthlyLeaveSummary() {
+        const y = viewDate.getFullYear();
+        const m = viewDate.getMonth();
+        const monthLabel = `${THAI_MONTHS[m]} ${y + 543}`;
+
+        // อัปเดตหัวการ์ดใน Tab 1
+        const summaryMonthBadge = document.getElementById('summary-month-name');
+        if (summaryMonthBadge) summaryMonthBadge.textContent = monthLabel;
+
+        const container = document.getElementById('monthly-summary-list');
+        if (!container) return;
+
+        const summaryData = calculateMonthlyLeaveSummary(y, m);
+        container.innerHTML = '';
+
+        let totalLeaveAllStaff = 0;
+
+        Object.keys(PEOPLE).forEach(name => {
+            const data = summaryData[name];
+            const c = PEOPLE[name] || { dot: '#999' };
+            totalLeaveAllStaff += data.totalDays;
+
+            const row = document.createElement('div');
+            row.className = 'stat-user-row';
+
+            // รายละเอียดแจกแจงประเภทการลา
+            const breakdown = Object.entries(data.byType)
+                .map(([type, days]) => `${type} ${days} ว.`)
+                .join(', ');
+
+            row.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="dot" style="background:${c.dot}"></span>
+                    <div>
+                        <span class="font-bold text-slate-800 text-xs">${name}</span>
+                        ${breakdown ? `<div class="text-[10px] text-slate-500">${breakdown}</div>` : `<div class="text-[10px] text-slate-400">ยังไม่มีวันลาในเดือนนี้</div>`}
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="font-extrabold text-sm ${data.totalDays > 0 ? 'text-amber-700' : 'text-slate-400'}">${data.totalDays}</span>
+                    <span class="text-[11px] text-slate-500"> วัน</span>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+
+        // สรุปรวมด้านล่าง
+        const totalRow = document.createElement('div');
+        totalRow.className = 'pt-2 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold text-slate-700 px-1';
+        totalRow.innerHTML = `
+            <span>รวมวันลาทั้งแผนกในเดือนนี้:</span>
+            <span class="font-bold text-amber-600">${totalLeaveAllStaff} วัน</span>
+        `;
+        container.appendChild(totalRow);
+
+        // อัปเดต Mini Summary ใน Tab 2 ให้คำนวณตามเดือนของ Tab 2
+        updateTab2LeaveSummary();
+    }
+
+    function renderTab2LeaveSummary(summaryData, monthLabel) {
+        const labelEl = document.getElementById('tab2-summary-month-label');
+        if (labelEl) labelEl.textContent = monthLabel;
+
+        const listEl = document.getElementById('tab2-summary-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        Object.keys(PEOPLE).forEach(name => {
+            const data = summaryData[name] || { totalDays: 0 };
+            const c = PEOPLE[name] || { dot: '#999' };
+            const item = document.createElement('div');
+            item.className = 'flex justify-between items-center bg-slate-50 px-2.5 py-1.5 rounded-lg';
+            item.innerHTML = `
+                <span class="flex items-center gap-1.5 font-medium text-slate-700">
+                    <span class="w-2 h-2 rounded-full" style="background:${c.dot}"></span>
+                    ${name}
+                </span>
+                <span class="font-bold ${data.totalDays > 0 ? 'text-slate-800' : 'text-slate-400'}">${data.totalDays} วัน</span>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+
+    // ฟังก์ชันคำนวณสรุปวันลาของ Tab 2 ตามเดือนที่เลื่อนดูโดยเฉพาะ
+    function updateTab2LeaveSummary() {
+        if (typeof currentYear === 'undefined' || typeof currentMonth === 'undefined') return;
+        const monthIndex0 = currentMonth - 1;
+        const monthLabel = `${THAI_MONTHS[monthIndex0]} ${currentYear + 543}`;
+        const tab2SummaryData = calculateMonthlyLeaveSummary(currentYear, monthIndex0);
+        renderTab2LeaveSummary(tab2SummaryData, monthLabel);
+    }
+
     function renderMonths(){
       const y = viewDate.getFullYear();
       const m = viewDate.getMonth();
       document.getElementById('range-title').textContent = `${THAI_MONTHS[m]} ${y+543}`;
+      
+      const tab1MonthBadge = document.getElementById('tab1-month-badge');
+      if (tab1MonthBadge) tab1MonthBadge.textContent = `เดือน ${THAI_MONTHS[m]} พ.ศ. ${y+543}`;
+
+      // สลับสีธีมประจำเดือนโดยอัตโนมัติ
+      applyMonthlyColorTheme(y, m);
 
       const todayISO = toISO(new Date());
       const row = document.getElementById('months-row');
@@ -1572,6 +2034,9 @@
 
       card.appendChild(grid);
       row.appendChild(card);
+
+      // เรียกแสดงผลสรุปยอดวันลาในแต่ละเดือน
+      renderMonthlyLeaveSummary();
     }
 
     function showDayDetail(iso){
@@ -1634,7 +2099,6 @@
       const wrap = document.getElementById('list-wrap');
       const todayStr = toISO(new Date()); 
       
-      // Filter out SYSTEM_ records from list view
       const activeLeaves = leaves.filter(l => l.end >= todayStr && !l.name.startsWith('SYSTEM_'));
 
       if(activeLeaves.length === 0){
@@ -1896,6 +2360,8 @@
         viewDate = new Date(parseISO(jumpDate).getFullYear(), parseISO(jumpDate).getMonth(), 1);
         renderMonths();
         showDayDetail(jumpDate);
+      } else {
+        renderMonths();
       }
       renderList();
     });
@@ -1934,7 +2400,6 @@
               renderList();
               if(selectedDayISO) showDayDetail(selectedDayISO);
               
-              // ซิงก์ตาราง Tab 2 แบบเรียลไทม์เมื่อมีการเปลี่ยนแปลงข้ามอุปกรณ์
               if (typeof updateCalendar === 'function') {
                   updateCalendar();
                   if (typeof selectedDateStr !== 'undefined' && selectedDateStr) selectDate(selectedDateStr);
@@ -1966,7 +2431,6 @@
 
       showDayDetail(toISO(new Date()));
       
-      // อัปเดตตาราง Tab 2 เพื่อให้ดึงค่า ARV ที่โหลดจาก Sheet มาแสดงผลทันที
       if (typeof updateCalendar === 'function') {
           updateCalendar();
           if (typeof selectedDateStr !== 'undefined' && selectedDateStr) selectDate(selectedDateStr);
@@ -1978,13 +2442,10 @@
 
     <!-- ==================== TAB 2: SCRIPTS (Duty Rotation & Shift Swap) ==================== -->
     <script>
-        // ----------------- CONFIGURATION & CONSTANTS -----------------
         const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/10euYdImtO7uMZlVK5MSwkU5kJKkBBi3Phuv5c2fMyMI/edit?usp=sharing";
 
-        // รายชื่อเจ้าหน้าที่หลัก 6 คน (รวมกิ้มด้วย)
         const ALL_STAFF = ["แอ๋ม", "เบิด", "หลิว", "แปง", "เพ็ญ", "กิ้ม"];
 
-        // ผังเวรประจำวันตามวันในสัปดาห์ (Day Shift Mapping)
         const dayShifts = {
             'Monday':    {'OPD1': 'A', 'OPD2': 'B', 'IPD': 'E', 'verify': 'F', 'NCD': 'D', 'rider': 'C'},
             'Tuesday':   {'OPD1': 'D', 'OPD2': 'F', 'IPD': 'B', 'verify': 'C', 'NCD': 'E', 'rider': 'A'},
@@ -1993,7 +2454,6 @@
             'Friday':    {'OPD1': 'B', 'OPD2': 'C', 'IPD': 'D', 'verify': 'E', 'NCD': 'A', 'rider': 'F'}
         };
 
-        // รหัสประจำเดือน ก.ค. 2569 - พ.ค. 2570 และเพิ่ม มิ.ย. 2569 เพื่อใช้อ้างอิงช่วงคาบเกี่ยวสัปดาห์แรก
         const monthlyStaff = {
             "2026-06": {'C':'แอ๋ม', 'D':'เบิด', 'E':'หลิว', 'F':'แปง', 'A':'เพ็ญ', 'B':'กิ้ม'},
             "2026-07": {'B':'แอ๋ม', 'C':'เบิด', 'D':'หลิว', 'E':'แปง', 'F':'เพ็ญ', 'A':'กิ้ม'},
@@ -2009,25 +2469,22 @@
             "2027-05": {'D':'แอ๋ม', 'E':'เบิด', 'F':'หลิว', 'A':'แปง', 'B':'เพ็ญ', 'C':'กิ้ม'}
         };
 
-        // ----------------- STATE CONSTANTS -----------------
         const __todayObj = new Date();
-        const __minMonth = new Date(2026, 6, 1);   // ขอบเขตล่างของตัวเลือกเดือน (ก.ค. 2569)
-        const __maxMonth = new Date(2050, 11, 31);   // ขอบเขตบนของตัวเลือกเดือน ขยายไปถึงสิ้นปี 2050
+        const __minMonth = new Date(2026, 6, 1);
+        const __maxMonth = new Date(2050, 11, 31);
         const __todayMonthObj = new Date(__todayObj.getFullYear(), __todayObj.getMonth(), 1);
         const __clampedMonthObj = __todayMonthObj < __minMonth ? __minMonth : (__todayMonthObj > __maxMonth ? __maxMonth : __todayMonthObj);
 
         let currentYear = __clampedMonthObj.getFullYear();
         let currentMonth = __clampedMonthObj.getMonth() + 1;
-        // ถ้าวันนี้อยู่ในเดือนที่แสดงจริง ให้ active ที่วันนี้ ไม่งั้น fallback ไปวันที่ 1 ของเดือนที่แสดง
         let selectedDateStr = (__clampedMonthObj.getTime() === __todayMonthObj.getTime())
             ? `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(__todayObj.getDate()).padStart(2, '0')}`
             : `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
         
         let leaveRecords = {};
-        let parsedLeaveTypes = {}; // เก็บประเภทการลา (เช่น ประชุม)
+        let parsedLeaveTypes = {};
         let manualLeaves = {};
 
-        // ----------------- EVENT INITIALIZERS -----------------
         window.onload = function() {
             initMonthSelector();
             
@@ -2048,15 +2505,14 @@
                 manualLeaves = {};
             }
 
-            // Silent fetch from Google Sheets in the background
             syncGoogleSheets();
         };
 
         function initMonthSelector() {
             const select = document.getElementById("month-select");
             select.innerHTML = "";
-            const start = new Date(2026, 6, 1); // July 2026
-            const end = new Date(2050, 11, 31);   // ขยายไปถึงธันวาคม 2050 (ระบบคำนวณอัตโนมัติ)
+            const start = new Date(2026, 6, 1);
+            const end = new Date(2050, 11, 31);
 
             let curr = new Date(start);
             while (curr <= end) {
@@ -2082,7 +2538,10 @@
             currentYear = y;
             currentMonth = m;
             
-            selectedDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-14`; // Focus on mid-month
+            // สลับสีธีมประจำเดือนโดยอัตโนมัติ
+            applyMonthlyColorTheme(currentYear, currentMonth - 1);
+
+            selectedDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-14`;
             updateCalendar();
             selectDate(selectedDateStr);
         }
@@ -2108,7 +2567,6 @@
             return url;
         }
 
-        // ----------------- SYNC GOOGLE SHEETS -----------------
         function syncGoogleSheets() {
             const urlInput = document.getElementById("sheet-url-input").value;
             if (!urlInput) return;
@@ -2190,7 +2648,6 @@
                 for (const name of ALL_STAFF) {
                     const normRaw = rawName.replace(/๊/g, '้').trim();
                     const normSearch = name.replace(/๊/g, '้').trim();
-                    // ตรวจสอบครอบคลุมชื่อของ กิ้ม และคนอื่นๆ
                     if (normRaw.includes(normSearch) || rawName.includes(name)) {
                         staffName = name;
                         break;
@@ -2299,7 +2756,6 @@
         }
 
         function getLeaveTypeForStaffOnDate(dateStr, name) {
-            // ดึงข้อมูลวันลาจากตัวแปร leaves ที่ถูกโหลดใน Tab 1 (ซิงค์แบบเรียลไทม์)
             const d = parseISO(dateStr);
             const tab1Match = leaves.find(l => {
                 const s = parseISO(l.start);
@@ -2307,10 +2763,9 @@
                 return l.name === name && s <= d && d <= e;
             });
             if (tab1Match) {
-                return tab1Match.type; // ประชุม, ลาพักผ่อน, ลากิจ
+                return tab1Match.type;
             }
 
-            // ถ้าไม่มีใน Tab 1 ให้ดูจาก CSV (Tab 2)
             const key = `${dateStr}_${name}`;
             if (parsedLeaveTypes && parsedLeaveTypes[key]) {
                 return parsedLeaveTypes[key];
@@ -2318,7 +2773,6 @@
             return "ลา";
         }
 
-        // ----------------- MANUAL LEAVE TOGGLING SYSTEM -----------------
         function toggleManualLeave(name) {
             const dateStr = selectedDateStr;
             if (!manualLeaves[dateStr]) {
@@ -2343,17 +2797,15 @@
             selectDate(dateStr);
         }
 
-        // ----------------- BUSINESS LOGIC ENGINE -----------------
         function getDynamicStaffMap(year, month) {
             const key = `${year}-${String(month).padStart(2, '0')}`;
-            if (monthlyStaff[key]) return monthlyStaff[key]; // ถ้ามีข้อมูลที่ระบุไว้ดั้งเดิม ให้ใช้ค่าเดิม
+            if (monthlyStaff[key]) return monthlyStaff[key];
 
-            // คำนวณรอบสลับเวรอัตโนมัติในกรณีที่เกินข้อมูลที่ระบุไว้ (อิงตามฐาน 2026-06)
             const baseYear = 2026;
             const baseMonth = 6;
             const monthsDiff = (year - baseYear) * 12 + (month - baseMonth);
             
-            const staffList = ['เพ็ญ', 'กิ้ม', 'แอ๋ม', 'เบิด', 'หลิว', 'แปง']; // บุคลากรตามตำแหน่ง A-F ของฐาน 2026-06
+            const staffList = ['เพ็ญ', 'กิ้ม', 'แอ๋ม', 'เบิด', 'หลิว', 'แปง'];
             const shift = ((monthsDiff % 6) + 6) % 6; 
             const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             
@@ -2361,7 +2813,7 @@
             for (let i = 0; i < 6; i++) {
                 newMap[letters[i]] = staffList[(i + shift) % 6];
             }
-            monthlyStaff[key] = newMap; // จำค่าไว้ในหน่วยความจำ
+            monthlyStaff[key] = newMap;
             return newMap;
         }
 
@@ -2401,7 +2853,6 @@
             }
         }
 
-        // ----------------- ARV CLINIC CALCULATION (UPDATED LOGIC) -----------------
         function isDefaultARV(dateStr) {
             const d = new Date(dateStr);
             const year = d.getFullYear();
@@ -2409,10 +2860,8 @@
             const currentDate = d.getDate();
             const dayOfWeek = d.getDay();
             
-            // กรองเฉพาะวันอังคาร(2) และวันพฤหัสบดี(4)
             if (dayOfWeek !== 2 && dayOfWeek !== 4) return { isARV: false, type: "" };
 
-            // 1. หาวันที่ของ "วันอังคารแรกของเดือน" ก่อน
             let firstTuesdayDate = 1;
             let tempDate = new Date(year, month, firstTuesdayDate);
             while (tempDate.getDay() !== 2) {
@@ -2420,11 +2869,7 @@
                 tempDate.setDate(firstTuesdayDate);
             }
 
-            // 2. คำนวณวันอังคารที่ 2 ของเดือน (บวกไปอีก 7 วันจากอังคารแรก)
             const secondTuesdayDate = firstTuesdayDate + 7;
-            
-            // 3. วันพฤหัสบดี ARV ต้องเป็นวันพฤหัสบดีที่ตามหลังวันอังคารที่ 2 ของเดือนเสมอ (บวกไปอีก 2 วัน)
-            // ทำให้การันตีว่าทั้งคู่อยู่ในสัปดาห์เดียวกันเสมอ
             const arvThursdayDate = secondTuesdayDate + 2;
 
             if (currentDate === secondTuesdayDate) {
@@ -2436,7 +2881,6 @@
         }
 
         function isSecondTuesdayOrThursday(dateStr) {
-            // เช็คว่ามีการตั้งค่ายกเลิก หรือเพิ่มเองข้ามอุปกรณ์หรือไม่ (อ้างอิงจากฐานข้อมูลหลัก)
             if (leaves.some(l => l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr)) {
                 return { isARV: false, type: "" };
             }
@@ -2445,15 +2889,11 @@
             }
             return isDefaultARV(dateStr);
         }
-        // --------------------------------------------------------------------------
 
         function calculateDutiesForDate(dateStr) {
             const d = new Date(dateStr);
             const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-            
             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-            
-            // ดึงปฏิทินวันหยุดจริงโดยอัตโนมัติจากโมดูล Tab 1 เพื่อให้ข้อมูลตรงกับปฏิทินจริงทุกประการ
             const holidayName = getHoliday(dateStr);
 
             if (isWeekend || holidayName) {
@@ -2481,14 +2921,11 @@
 
             const sheetLeaves = leaveRecords[dateStr] || [];
             const manualLeavesOnDate = manualLeaves[dateStr] || [];
-            // ดึงรายชื่อการลาจากตัวแปร leaves (จาก Tab 1 ที่ซิงก์เรียลไทม์) มาเพิ่ม โดยกรองไม่รวมการลา "ครึ่งวันบ่าย"
             const realtimeLeavesFull = leavesOnDate(dateStr).filter(l => l.period !== "บ่าย" && l.period !== "ครึ่งวันบ่าย");
             const realtimeLeavesOnlyNames = realtimeLeavesFull.map(l => l.name);
 
-            // เก็บรายการลาทั้งหมด รวมถึงครึ่งวันบ่าย สำหรับแสดงผล Badge แจ้งเตือน
             const allLeavesRaw = leavesOnDate(dateStr);
             const allActiveLeavesForDisplay = Array.from(new Set([...sheetLeaves, ...manualLeavesOnDate, ...allLeavesRaw.map(l => l.name)]));
-
             const allLeavesOnDate = Array.from(new Set([...sheetLeaves, ...manualLeavesOnDate, ...realtimeLeavesOnlyNames]));
 
             const arvInfo = isSecondTuesdayOrThursday(dateStr);
@@ -2520,7 +2957,6 @@
                 return null;
             };
 
-            // 1. ARV Clinic swapping logic (ตรวจข้อยกเว้นการลาของ "เบิด" ยกเว้นกรณีเบิดลาจริง)
             if (arvInfo.isARV) {
                 const birdPos = getBirdOriginalPosition();
                 const activeNcdUser = ncd;
@@ -2556,13 +2992,11 @@
                 }
             }
 
-            // 2. Daily Leave replacements mapping
             const assignedPeople = [opd1, opd2, ipd, verify, ncd, rider, arv];
             let activeLeaves = allLeavesOnDate.filter(name => {
                 return assignedPeople.some(person => person && person.includes(name));
             });
 
-            // ตรวจสอบเงื่อนไขข้อตกลง: "กรณี เบิด ตรงกับ ARV ก็จะไม่ลงว่า เบิดลา" (ยกเว้นเบิดลาจริง)
             if (arvInfo.isARV) {
                 if (!allLeavesOnDate.includes("เบิด")) {
                     activeLeaves = activeLeaves.filter(name => name !== "เบิด");
@@ -2574,7 +3008,6 @@
                 return type === "ประชุม" ? "ประชุม" : "ลา";
             };
 
-            // ช่วยหาคนแทนจาก NCD/Rider ที่ว่างอยู่ และไม่ใช่ "เบิด"
             const getAvailableBackup = () => {
                 const backup1 = extractCleanName(ncd);
                 const backup2 = extractCleanName(rider);
@@ -2604,8 +3037,6 @@
                 if (criticalLeavers.length === 1) {
                     const leaver = criticalLeavers[0];
                     if (arvInfo.isARV) {
-                        // วัน ARV หาคนแทน
-                        // --- แก้ไขเฉพาะในวัน ARV: หากตำแหน่ง arv ลา ไม่ต้องมีคนแทน ---
                         if (leaver.pos === 'ARV') {
                              arv = `ว่าง (ไม่มีผู้แทน - "${leaver.name}" ${getReasonText(leaver.name)})`;
                              replacementLogs.push(`แจ้งบันทึกการลา: คลินิก ARV "${leaver.name}" ${getReasonText(leaver.name)} โดยไม่มีการจัดคนแทนในตำแหน่ง ARV`);
@@ -2618,7 +3049,7 @@
                                 else if (leaver.pos === 'IPD') ipd = replText;
                                 else if (leaver.pos === 'verify') verify = replText;
                                 
-                                isRiderCombined = true; // เมื่อมีการดึงคนไปแทน ต้องควบ NCD+Rider เสมอ
+                                isRiderCombined = true;
                                 replacementLogs.push(`คลินิก ARV: โยก "${backup}" ไปแทน "${leaver.name}" (${leaver.pos}) และเปลี่ยน Rider เป็นควบ "NCD+rider"`);
                             } else {
                                 const replText = `ว่าง (ไม่มีผู้แทน - "${leaver.name}" ${getReasonText(leaver.name)})`;
@@ -2626,11 +3057,10 @@
                                 else if (leaver.pos === 'OPD2') opd2 = replText;
                                 else if (leaver.pos === 'IPD') ipd = replText;
                                 else if (leaver.pos === 'verify') verify = replText;
-                                replacementLogs.push(`แจ้งบันทึกการลา: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} แต่ไม่มีกำลังพลสำรองว่าง (เนื่องจากเป็นวัน ARV และกำลังคนจำกัด)`);
+                                replacementLogs.push(`แจ้งบันทึกการลา: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} แต่ไม่มีกำลังพลสำรองว่าง`);
                             }
                         }
                     } else {
-                        // วันปกติ
                         if (!isNcdOnLeave) {
                             const replText = `${primaryBackup} (แทน${leaver.name}ที่${getReasonText(leaver.name)})`;
                             if (leaver.pos === 'OPD1') opd1 = replText;
@@ -2641,7 +3071,7 @@
 
                             ncdVacant = true;
                             isRiderCombined = true;
-                            replacementLogs.push(`สลับกำลังพล: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} -> โยก "${primaryBackup}" (NCD) ไปสลับแทน และเปลี่ยน Rider เป็นควบ "NCD+rider"`);
+                            replacementLogs.push(`สลับกำลังพล: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} -> โยก "${primaryBackup}" (NCD) แทน และเปลี่ยน Rider ควบ NCD+rider`);
                         } else if (!isRiderOnLeave) {
                             const replText = `${secondaryBackup} (แทน${leaver.name}ที่${getReasonText(leaver.name)})`;
                             if (leaver.pos === 'OPD1') opd1 = replText;
@@ -2652,7 +3082,7 @@
 
                             riderVacant = true;
                             ncdVacant = true;
-                            replacementLogs.push(`สลับกำลังพล: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} และ "${primaryBackup}" (NCD) ก็ลางาน -> โยก "${secondaryBackup}" (Rider) ไปช่วยแทน`);
+                            replacementLogs.push(`สลับกำลังพล: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} -> โยก "${secondaryBackup}" (Rider) ไปช่วยแทน`);
                         } else {
                             const replText = `ว่าง (ไม่มีผู้แทน - "${leaver.name}" ${getReasonText(leaver.name)})`;
                             if (leaver.pos === 'OPD1') opd1 = replText;
@@ -2660,7 +3090,7 @@
                             else if (leaver.pos === 'IPD') ipd = replText;
                             else if (leaver.pos === 'verify') verify = replText;
                             else if (leaver.pos === 'ARV') arv = replText;
-                            replacementLogs.push(`แจ้งบันทึกการลา: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} แต่กำลังพลสำรองว่างทั้งหมด (เนื่องจากลาหยุดงาน)`);
+                            replacementLogs.push(`แจ้งบันทึกการลา: "${leaver.name}" (${leaver.pos}) ${getReasonText(leaver.name)} แต่กำลังพลสำรองว่างทั้งหมด`);
                         }
                     }
                 } 
@@ -2669,9 +3099,6 @@
                     const leaver2 = criticalLeavers[1];
 
                     if (arvInfo.isARV) {
-                        // วัน ARV กรณีมีคนลา 2 คน
-                        // --- แก้ไขเฉพาะในวัน ARV: หากตำแหน่ง arv ลา ไม่ต้องมีคนแทน ---
-                        
                         let remainingLeavers = [];
 
                         if(leaver1.pos === 'ARV'){
@@ -2686,8 +3113,6 @@
                              remainingLeavers = [leaver1, leaver2];
                         }
                         
-                        // หาคนแทนให้ตำแหน่งที่เหลือ (ที่ไม่ใช่ ARV)
-                        let backupCount = 1;
                         remainingLeavers.forEach(leaver => {
                              const backup = getAvailableBackup();
                              if(backup) {
@@ -2703,14 +3128,12 @@
                                   else if (leaver.pos === 'IPD') ipd = repl;
                                   else if (leaver.pos === 'verify') verify = repl;
                              }
-                             backupCount++;
                         });
 
                         isRiderCombined = true;
-                        replacementLogs.push(`คลินิก ARV: มีการลาหลายตำแหน่ง ดำเนินการโยกย้ายกำลังพลทดแทนเท่าที่สามารถทำได้ (หลีกเลี่ยงการใช้ "เบิด")`);
+                        replacementLogs.push(`คลินิก ARV: มีการลาหลายตำแหน่ง ดำเนินการโยกย้ายกำลังพลทดแทนเท่าที่ทำได้`);
 
                     } else {
-                        // วันปกติ
                         if (!isNcdOnLeave && !isRiderOnLeave) {
                             const repl1 = `${primaryBackup} (แทน${leaver1.name}ที่${getReasonText(leaver1.name)})`;
                             const repl2 = `${secondaryBackup} (แทน${leaver2.name}ที่${getReasonText(leaver2.name)})`;
@@ -2729,7 +3152,7 @@
 
                             ncdVacant = true;
                             riderVacant = true;
-                            replacementLogs.push(`สลับกำลังพล: "${leaver1.name}" และ "${leaver2.name}" ลา/ประชุม -> ดึง "${primaryBackup}" (NCD) แทนคนแรก และ "${secondaryBackup}" (Rider) แทนคนที่สอง`);
+                            replacementLogs.push(`สลับกำลังพล: "${leaver1.name}" และ "${leaver2.name}" ลา/ประชุม -> ดึง "${primaryBackup}" (NCD) และ "${secondaryBackup}" (Rider) แทน`);
                         } 
                         else if (!isNcdOnLeave) {
                             const repl1 = `${primaryBackup} (แทน${leaver1.name}ที่${getReasonText(leaver1.name)})`;
@@ -2747,7 +3170,7 @@
                             else if (leaver2.pos === 'ARV') arv = repl2;
 
                             ncdVacant = true;
-                            replacementLogs.push(`สลับกำลังพล: สับเวรของ "${leaver1.name}" ด้วย "${primaryBackup}" (NCD) ส่วนตำแหน่งที่ลาของ "${leaver2.name}" ไม่มีคนแทนเนื่องจากคนล้นจำนวนพนักงาน`);
+                            replacementLogs.push(`สลับกำลังพล: โยก "${primaryBackup}" แทน "${leaver1.name}" ส่วนตำแหน่งของ "${leaver2.name}" ว่าง`);
                         }
                         else if (!isRiderOnLeave) {
                             const repl1 = `${secondaryBackup} (แทน${leaver1.name}ที่${getReasonText(leaver1.name)})`;
@@ -2766,7 +3189,7 @@
 
                             riderVacant = true;
                             ncdVacant = true;
-                            replacementLogs.push(`สลับกำลังพล: สับเวรของ "${leaver1.name}" ด้วย "${secondaryBackup}" (Rider) ส่วนตำแหน่งที่ลาของ "${leaver2.name}" ว่างเนื่องจากกำลังคนไม่เพียงพอ`);
+                            replacementLogs.push(`สลับกำลังพล: โยก "${secondaryBackup}" แทน "${leaver1.name}" ส่วน "${leaver2.name}" ว่าง`);
                         }
                         else {
                             replacementLogs.push(`เตือนกำลังคนวิกฤต: ผู้ปฏิบัติงานหลักและกำลังพลสำรองในตารางต่างลาพร้อมกัน`);
@@ -2786,7 +3209,7 @@
                     ncdVacant = true;
                     if (!activeLeaves.includes(extractCleanName(secondaryBackup)) && criticalLeavers.length === 0) {
                         isRiderCombined = true;
-                        replacementLogs.push(`แจ้งบันทึกการลา: "${primaryBackup}" (NCD) ${getReasonText(primaryBackup)} -> ดึง Rider ควบงานแทนเป็น "NCD+rider"`);
+                        replacementLogs.push(`แจ้งบันทึกการลา: "${primaryBackup}" (NCD) ${getReasonText(primaryBackup)} -> ดึง Rider ควบงานแทน`);
                     }
                 }
                 if (isRiderOnLeave) {
@@ -2795,15 +3218,13 @@
                 }
             }
 
-            // กรณี Rider ว่าง ไม่ว่าจะลาหรือสลับไปทำงานอื่น และ NCD ไม่ได้ว่างเวร NCD จะทำงานควบ "NCD+rider"
             if (riderVacant && !ncdVacant) {
                 isNcdCombined = true;
-                replacementLogs.push(`ข้อตกลงปฏิบัติงาน: Rider ว่างงาน -> มอบหมาย "${ncd}" (NCD) ทำงานควบเป็น "NCD+rider"`);
+                replacementLogs.push(`ข้อตกลงปฏิบัติงาน: Rider ว่างงาน -> มอบหมาย "${ncd}" (NCD) ควบเป็น NCD+rider`);
             }
 
             const finalDuties = { OPD1: opd1, OPD2: opd2, IPD: ipd, verify: verify };
             
-            // ปรับปรุงเงื่อนไขให้แสดง "ว่าง (ไปช่วยงานแทน)" หรือ "ว่าง (ลางาน/ประชุม)" อย่างใดอย่างหนึ่งให้ชัดเจน ไม่ปะปนสับสน
             if (ncdVacant) {
                 const cleanNcdName = extractCleanName(ncd);
                 const reasonText = getReasonText(cleanNcdName);
@@ -2843,11 +3264,10 @@
                 arvInfo: arvInfo,
                 staffMappingInfo: staffMappingInfo,
                 replacementLogs: replacementLogs,
-                activeLeaves: allActiveLeavesForDisplay // คืนค่าทั้งหมดรวมถึงบ่ายไปให้แสดงบน Detail Panel
+                activeLeaves: allActiveLeavesForDisplay
             };
         }
 
-        // ----------------- CALENDAR RENDERER -----------------
         function updateCalendar() {
             const grid = document.getElementById("calendar-grid");
             grid.innerHTML = "";
@@ -2855,7 +3275,6 @@
             const firstDateOfMonth = new Date(currentYear, currentMonth - 1, 1);
             document.getElementById("calendar-title-label").textContent = `ปฏิทินปฏิบัติงาน ประจำเดือน ${firstDateOfMonth.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}`;
             
-            // Update stats indicators
             const thMonthShort = firstDateOfMonth.toLocaleDateString('th-TH', { month: 'short' });
             document.getElementById("stats-month-label").textContent = `สะสมตลอดเดือน ${thMonthShort}`;
 
@@ -2898,7 +3317,6 @@
                 header.appendChild(dayNum);
 
                 if (result.isOff) {
-                    // "OFF" badge hidden for normal weekends; only show for official holidays
                     if (result.reason.includes("วันหยุดราชการ")) holidayCount++;
                     if (result.reason.includes("วันหยุดราชการ") || result.reason.includes("นักขัตฤกษ์")) {
                         const statusBadge = document.createElement("span");
@@ -2909,7 +3327,7 @@
                 } else {
                     if (result.staffMappingInfo.inherited) {
                         const inheritBadge = document.createElement("span");
-                        inheritBadge.className = "text-[7px] sm:text-[8px] bg-sky-50 text-sky-600 font-medium px-1 rounded-md"
+                        inheritBadge.className = "text-[7px] sm:text-[8px] bg-sky-50 text-sky-600 font-medium px-1 rounded-md";
                         inheritBadge.title = "สืบทอดตารางจากเดือนก่อนหน้า";
                         inheritBadge.innerHTML = "<i class='fa-solid fa-clock-rotate-left'></i>";
                         header.appendChild(inheritBadge);
@@ -2979,9 +3397,13 @@
 
             document.getElementById("holiday-count-badge").textContent = `${holidayCount} วันหยุดราชการในเดือนนี้`;
             renderStaffStats(staffDutyStats);
+            
+            // อัปเดตสรุปวันลาประจำเดือนใน Tab 2 ให้ตรงกับเดือนที่กำลังเลื่อนดูทันที
+            if (typeof updateTab2LeaveSummary === 'function') {
+                updateTab2LeaveSummary();
+            }
         }
 
-        // ป้องกันการกวาดตรวจจับชื่อซ้ำภายในวงเล็บคำอธิบายเหตุผลสลับเวร (เช่น "แปง (แทนเบิด)" จะสกัดได้เฉพาะ "แปง")
         function extractCleanName(str) {
             if (!str) return "";
             let cleanStr = str.split('(')[0].trim();
@@ -2991,7 +3413,6 @@
             return cleanStr;
         }
 
-        // ----------------- STAFF STATS RENDERER -----------------
         function renderStaffStats(stats) {
             const container = document.getElementById("staff-stats-container");
             container.innerHTML = "";
@@ -3022,7 +3443,6 @@
             });
         }
 
-        // ----------------- DAILY INSPECTION VIEW -----------------
         function selectDate(dateStr) {
             selectedDateStr = dateStr;
             const d = new Date(dateStr);
@@ -3035,7 +3455,6 @@
 
             const result = calculateDutiesForDate(dateStr);
 
-            // Update interactive toggle title above the calendar
             const thDateText = d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
             document.getElementById("toggles-date-label").textContent = `ประจำวันที่ ${thDateText}`;
 
@@ -3064,12 +3483,9 @@
                 leaveBlock.classList.add("hidden");
             }
 
-            // --- Render Manual Leave Toggles inside Horizontal Panel above Calendar ---
-            // ลบการแสดงผลคำอ้างอิงย่อยและคำว่า "ปกติ" ออก เพื่อความเรียบร้อยสะอาดตามมติข้อตกลง
             const manualContainer = document.getElementById("manual-leave-toggles");
             manualContainer.innerHTML = "";
             
-            // เช็คว่ามีใครลาใน Tab 1 ของวันนี้บ้าง
             const realtimeLeavesForToday = leavesOnDate(dateStr).map(l => l.name);
 
             ALL_STAFF.forEach(name => {
@@ -3199,7 +3615,6 @@
             }
         }
 
-        // ----------------- CSV EXPORT (DEPRECATED BUT MAINTAINED) -----------------
         function exportToCSV() {
             const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
             const csvRows = [];
@@ -3261,7 +3676,6 @@
             selectDate(selectedDateStr);
         }
 
-        // ----------------- ARV CONFIGURATION MODAL (CROSS-DEVICE) -----------------
         function openArvModal() {
             const modal = document.getElementById('arv-modal');
             const modalContent = document.getElementById('arv-modal-content');
@@ -3269,7 +3683,6 @@
             const thMonthText = new Date(currentYear, currentMonth - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
             document.getElementById('arv-modal-month-label').textContent = thMonthText;
             
-            // Limit Date picker roughly to current selection
             const minDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
             const maxDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(new Date(currentYear, currentMonth, 0).getDate()).padStart(2, '0')}`;
             const input = document.getElementById('new-arv-date');
@@ -3343,10 +3756,8 @@
             const dateStr = input.value;
             if (!dateStr) return;
             
-            // Remove CANCEL override if exists
             leaves = leaves.filter(l => !(l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr));
             
-            // Add CUSTOM override if not default
             const defaultInfo = isDefaultARV(dateStr);
             if (!defaultInfo.isARV) {
                 if (!leaves.some(l => l.name === "SYSTEM_ARV_CUSTOM" && l.start === dateStr)) {
@@ -3362,7 +3773,7 @@
                 }
             }
 
-            await saveLeaves(); // Sync across devices!
+            await saveLeaves();
             renderArvModalList();
             updateCalendar();
             if(dateStr.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)) {
@@ -3370,32 +3781,155 @@
             }
         }
 
-        async function removeArvDate(dateStr) {
-            // Remove CUSTOM override if exists
-            leaves = leaves.filter(l => !(l.name === "SYSTEM_ARV_CUSTOM" && l.start === dateStr));
+        // ----------------- HOLIDAY CONFIGURATION MODAL (BOTH TABS & CROSS-DEVICE) -----------------
+        let holidayModalTargetYear = currentYear;
+        let holidayModalTargetMonth = currentMonth;
+
+        function openHolidayModal(sourceTab) {
+            if (sourceTab === 'tab1' && typeof viewDate !== 'undefined') {
+                holidayModalTargetYear = viewDate.getFullYear();
+                holidayModalTargetMonth = viewDate.getMonth() + 1;
+            } else {
+                holidayModalTargetYear = currentYear;
+                holidayModalTargetMonth = currentMonth;
+            }
+
+            const modal = document.getElementById('holiday-modal');
+            const modalContent = document.getElementById('holiday-modal-content');
             
-            // Add CANCEL override if it is a default date
-            const defaultInfo = isDefaultARV(dateStr);
-            if (defaultInfo.isARV) {
-                if (!leaves.some(l => l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr)) {
+            const thMonthText = new Date(holidayModalTargetYear, holidayModalTargetMonth - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+            document.getElementById('holiday-modal-month-label').textContent = thMonthText;
+            
+            const minDate = `${holidayModalTargetYear}-${String(holidayModalTargetMonth).padStart(2, '0')}-01`;
+            const maxDate = `${holidayModalTargetYear}-${String(holidayModalTargetMonth).padStart(2, '0')}-${String(new Date(holidayModalTargetYear, holidayModalTargetMonth, 0).getDate()).padStart(2, '0')}`;
+            const inputDate = document.getElementById('new-holiday-date');
+            inputDate.min = minDate;
+            inputDate.max = maxDate;
+            inputDate.value = minDate;
+            document.getElementById('new-holiday-name').value = '';
+
+            renderHolidayModalList();
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeHolidayModal() {
+            const modal = document.getElementById('holiday-modal');
+            const modalContent = document.getElementById('holiday-modal-content');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function renderHolidayModalList() {
+            const listContainer = document.getElementById('holiday-dates-list');
+            listContainer.innerHTML = '';
+            
+            const daysInMonth = new Date(holidayModalTargetYear, holidayModalTargetMonth, 0).getDate();
+            let hasAny = false;
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${holidayModalTargetYear}-${String(holidayModalTargetMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const hName = getHoliday(dateStr);
+                
+                if (hName) {
+                    hasAny = true;
+                    const isCustom = leaves.some(l => l.name === "SYSTEM_HOLIDAY_CUSTOM" && l.start === dateStr);
+                    const dObj = new Date(dateStr);
+                    const thDate = dObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const thWeekday = dObj.toLocaleDateString('th-TH', { weekday: 'short' });
+                    
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center p-3 bg-rose-50/50 border border-rose-100 rounded-xl";
+                    item.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-800 text-sm">${thDate} (${thWeekday})</span>
+                            <span class="text-xs text-rose-600 font-medium">${escapeHtml(hName)} <span class="text-[10px] text-slate-400 font-normal">(${isCustom ? 'กำหนดเอง' : 'ระบบอัตโนมัติ'})</span></span>
+                        </div>
+                        <button onclick="removeHolidayDate('${dateStr}')" class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 hover:bg-rose-200 flex items-center justify-center transition-colors shadow-sm" title="ยกเลิกวันหยุดนี้">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    `;
+                    listContainer.appendChild(item);
+                }
+            }
+
+            if (!hasAny) {
+                listContainer.innerHTML = `<div class="text-center p-4 text-sm text-slate-400 italic">ไม่มีวันหยุดราชการในเดือนนี้</div>`;
+            }
+        }
+
+        async function addCustomHolidayDate() {
+            const inputDate = document.getElementById('new-holiday-date');
+            const inputName = document.getElementById('new-holiday-name');
+            const dateStr = inputDate.value;
+            const hName = inputName.value.trim() || "วันหยุดพิเศษ";
+            if (!dateStr) return;
+            
+            // ลบรายการยกเลิกเดิมถ้ามี
+            leaves = leaves.filter(l => !(l.name === "SYSTEM_HOLIDAY_CANCEL" && l.start === dateStr));
+            // ลบรายการกำหนดเองเดิมของวันเดียวกันเพื่ออัปเดตชื่อใหม่
+            leaves = leaves.filter(l => !(l.name === "SYSTEM_HOLIDAY_CUSTOM" && l.start === dateStr));
+            
+            const defaultHoliday = getDefaultHoliday(dateStr);
+            if (!defaultHoliday || defaultHoliday !== hName) {
+                leaves.push({
+                    id: 'holc_' + Date.now() + Math.random().toString(16).slice(2),
+                    name: "SYSTEM_HOLIDAY_CUSTOM",
+                    start: dateStr,
+                    end: dateStr,
+                    type: "HOLIDAY",
+                    period: "เต็มวัน",
+                    note: hName
+                });
+            }
+
+            inputName.value = '';
+            await saveLeaves();
+            renderHolidayModalList();
+            if (typeof renderMonths === 'function') renderMonths();
+            if (typeof selectedDayISO !== 'undefined' && selectedDayISO) showDayDetail(selectedDayISO);
+            updateCalendar();
+            if (selectedDateStr) selectDate(selectedDateStr);
+        }
+
+        async function removeHolidayDate(dateStr) {
+            // ลบวันหยุดที่ตั้งเอง
+            leaves = leaves.filter(l => !(l.name === "SYSTEM_HOLIDAY_CUSTOM" && l.start === dateStr));
+            
+            // หากเป็นวันหยุดระบบอัตโนมัติ ให้ใส่ flag ยกเลิกไว้
+            const defaultHoliday = getDefaultHoliday(dateStr);
+            if (defaultHoliday) {
+                if (!leaves.some(l => l.name === "SYSTEM_HOLIDAY_CANCEL" && l.start === dateStr)) {
                     leaves.push({
-                        id: 'arvx_' + Date.now() + Math.random().toString(16).slice(2),
-                        name: "SYSTEM_ARV_CANCEL",
+                        id: 'holx_' + Date.now() + Math.random().toString(16).slice(2),
+                        name: "SYSTEM_HOLIDAY_CANCEL",
                         start: dateStr,
                         end: dateStr,
-                        type: "ARV",
+                        type: "HOLIDAY",
                         period: "เต็มวัน",
-                        note: "ยกเลิก"
+                        note: "ยกเลิกวันหยุด"
                     });
                 }
             }
 
-            await saveLeaves(); // Sync across devices!
-            renderArvModalList();
+            await saveLeaves();
+            renderHolidayModalList();
+            if (typeof renderMonths === 'function') renderMonths();
+            if (typeof selectedDayISO !== 'undefined' && selectedDayISO) showDayDetail(selectedDayISO);
             updateCalendar();
-            if(dateStr.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)) {
-                selectDate(selectedDateStr);
-            }
+            if (selectedDateStr) selectDate(selectedDateStr);
         }
     </script>
 </body>
