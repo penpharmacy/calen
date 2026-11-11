@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -805,7 +804,7 @@
                 </div>
                 <div>
                     <h1 class="text-base md:text-lg font-bold tracking-wide">ตารางปฏิบัติงาน วันลากลุ่มคนดี</h1>
-                    <p class="text-[11px] font-light mt-0.5 text-slate-400" id="header-theme-label">ระบบสลับเวรและปฏิทินวันลาอัตโนมัติ</p>
+                    <p class="text-[11px] font-light mt-0.5 text-slate-400" id="header-theme-label"></p>
                 </div>
             </div>
             
@@ -1031,14 +1030,19 @@
 
                         <!-- Calendar Card -->
                         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex-grow flex flex-col">
-                            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 flex-wrap gap-2">
                                 <h2 class="font-bold text-slate-800 flex items-center gap-2 text-sm sm:text-base">
                                     <i class="fa-solid fa-calendar-days text-amber-500"></i>
                                     <span id="calendar-title-label">ปฏิทินปฏิบัติงาน</span>
                                 </h2>
-                                <span id="holiday-count-badge" class="text-[10px] sm:text-xs bg-rose-50 text-rose-700 font-medium px-2.5 py-1 rounded-full border border-rose-100">
-                                    0 วันหยุดราชการในเดือนนี้
-                                </span>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span id="holiday-count-badge" class="text-[10px] sm:text-xs bg-rose-50 text-rose-700 font-medium px-2.5 py-1 rounded-full border border-rose-100">
+                                        0 วันหยุดราชการในเดือนนี้
+                                    </span>
+                                    <span id="workday-count-badge" class="text-[10px] sm:text-xs bg-emerald-50 text-emerald-700 font-medium px-2.5 py-1 rounded-full border border-emerald-100">
+                                        0 วันทำการ
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Calendar Grid Wrapper -->
@@ -1229,7 +1233,6 @@
     <!-- DYNAMIC MONTHLY PALETTES ENGINE (ไม่ซ้ำกันในแต่ละเดือน) -->
     <!-- ======================================================== -->
     <script>
-        // ชุดคู่สีธีมระดับพรีเมียม 12 รูปแบบสำหรับหมุนเวียนอัตโนมัติตามเดือน
         const MONTHLY_THEME_PALETTES = [
             {
                 name: "Violet Amethyst",
@@ -1305,9 +1308,7 @@
             }
         ];
 
-        // ฟังก์ชันสุ่มและผูกชุดสีตามเดือนโดยอัตโนมัติ (ไม่ซ้ำเมื่อข้ามเดือน)
         function applyMonthlyColorTheme(year, monthIndex0) {
-            // สูตรคำนวณ seed แบบตายตัวต่อเดือน (ปี + เดือน) ทำให้เปิดมาสีสวย สม่ำเสมอ และเปลี่ยนทุกครั้งที่เปลี่ยนเดือน
             const seed = (year * 12 + monthIndex0);
             const paletteIndex = Math.abs(seed) % MONTHLY_THEME_PALETTES.length;
             const p = MONTHLY_THEME_PALETTES[paletteIndex];
@@ -1320,7 +1321,6 @@
             root.style.setProperty('--theme-secondary-soft', p.secondarySoft);
             root.style.setProperty('--theme-header-border', p.primary);
 
-            // อัปเดต CSS Variables ใน Leave Calendar Theme Container
             const calTheme = document.querySelector('.leave-calendar-theme');
             if (calTheme) {
                 calTheme.style.setProperty('--bg', p.bg);
@@ -1332,17 +1332,14 @@
                 calTheme.style.setProperty('--accent2-soft', p.secondarySoft);
             }
 
-            // ปรับสีไอคอนหลักบนแถบนำทาง
             const hIcon = document.getElementById('header-icon');
             if (hIcon) hIcon.style.color = p.primary;
 
-            // ข้อความบอกธีมสีประจำเดือน
             const themeLabel = document.getElementById('header-theme-label');
             if (themeLabel) {
-                themeLabel.textContent = `ระบบตารางงาน · ${p.label}`;
+                themeLabel.textContent = '';
             }
 
-            // ปรับสีปุ่มแท็บที่ Active อยู่
             updateTabButtonStyles();
         }
 
@@ -1400,7 +1397,6 @@
             updateTabButtonStyles();
         }
 
-        // Modal Logic to replace alert()
         function showCustomModal(title, message) {
             const modal = document.getElementById('custom-modal');
             const modalContent = document.getElementById('custom-modal-content');
@@ -1465,9 +1461,6 @@
     const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     const parseISO = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
 
-    // ==========================================
-    // ส่วนสร้างวันหยุดอัตโนมัติ
-    // ==========================================
     const FIXED_HOLIDAYS = {
       "01-01": "วันขึ้นปีใหม่",
       "04-06": "วันจักรี",
@@ -1819,15 +1812,11 @@
       return cells;
     }
 
-    // ========================================================
-    // ฟังก์ชันคำนวณและแสดงผล: สรุปวันลาประจำเดือน (NEW)
-    // ========================================================
     function calculateMonthlyLeaveSummary(year, monthIndex0) {
         const daysInMonth = new Date(year, monthIndex0 + 1, 0).getDate();
         const monthStart = new Date(year, monthIndex0, 1);
         const monthEnd = new Date(year, monthIndex0, daysInMonth);
 
-        // โครงสร้างเก็บสถิติ
         const summary = {};
         Object.keys(PEOPLE).forEach(name => {
             summary[name] = {
@@ -1837,21 +1826,17 @@
             };
         });
 
-        // วนลูปผ่านรายการลาทั้งหมดที่โหลดมา
         leaves.forEach(l => {
             if (l.name.startsWith('SYSTEM_') || !summary[l.name]) return;
 
             const lStart = parseISO(l.start);
             const lEnd = parseISO(l.end);
 
-            // ตรวจสอบว่าช่วงวันลามีส่วนซ้อนทับกับเดือนที่กำลังแสดงผลหรือไม่
             if (lEnd < monthStart || lStart > monthEnd) return;
 
-            // หาวันที่เริ่มต้นและสิ้นสุดเฉพาะที่ตกอยู่ในเดือนนี้
             const effectiveStart = lStart < monthStart ? new Date(monthStart) : new Date(lStart);
             const effectiveEnd = lEnd > monthEnd ? new Date(monthEnd) : new Date(lEnd);
 
-            // นับจำนวนวัน
             let count = 0;
             let cur = new Date(effectiveStart);
             while (cur <= effectiveEnd) {
@@ -1859,7 +1844,6 @@
                 cur.setDate(cur.getDate() + 1);
             }
 
-            // คำนวณตามช่วงเวลา (เต็มวัน = 1, เช้า/บ่าย = 0.5)
             let weight = 1.0;
             if (l.period === 'เช้า' || l.period === 'บ่าย' || l.period === 'ครึ่งวันเช้า' || l.period === 'ครึ่งวันบ่าย') {
                 weight = 0.5;
@@ -1880,7 +1864,6 @@
         const m = viewDate.getMonth();
         const monthLabel = `${THAI_MONTHS[m]} ${y + 543}`;
 
-        // อัปเดตหัวการ์ดใน Tab 1
         const summaryMonthBadge = document.getElementById('summary-month-name');
         if (summaryMonthBadge) summaryMonthBadge.textContent = monthLabel;
 
@@ -1900,7 +1883,6 @@
             const row = document.createElement('div');
             row.className = 'stat-user-row';
 
-            // รายละเอียดแจกแจงประเภทการลา
             const breakdown = Object.entries(data.byType)
                 .map(([type, days]) => `${type} ${days} ว.`)
                 .join(', ');
@@ -1921,7 +1903,6 @@
             container.appendChild(row);
         });
 
-        // สรุปรวมด้านล่าง
         const totalRow = document.createElement('div');
         totalRow.className = 'pt-2 mt-2 border-t border-slate-100 flex justify-between items-center text-xs font-semibold text-slate-700 px-1';
         totalRow.innerHTML = `
@@ -1930,7 +1911,6 @@
         `;
         container.appendChild(totalRow);
 
-        // อัปเดต Mini Summary ใน Tab 2 ให้คำนวณตามเดือนของ Tab 2
         updateTab2LeaveSummary();
     }
 
@@ -1958,7 +1938,6 @@
         });
     }
 
-    // ฟังก์ชันคำนวณสรุปวันลาของ Tab 2 ตามเดือนที่เลื่อนดูโดยเฉพาะ
     function updateTab2LeaveSummary() {
         if (typeof currentYear === 'undefined' || typeof currentMonth === 'undefined') return;
         const monthIndex0 = currentMonth - 1;
@@ -1975,7 +1954,6 @@
       const tab1MonthBadge = document.getElementById('tab1-month-badge');
       if (tab1MonthBadge) tab1MonthBadge.textContent = `เดือน ${THAI_MONTHS[m]} พ.ศ. ${y+543}`;
 
-      // สลับสีธีมประจำเดือนโดยอัตโนมัติ
       applyMonthlyColorTheme(y, m);
 
       const todayISO = toISO(new Date());
@@ -2035,7 +2013,6 @@
       card.appendChild(grid);
       row.appendChild(card);
 
-      // เรียกแสดงผลสรุปยอดวันลาในแต่ละเดือน
       renderMonthlyLeaveSummary();
     }
 
@@ -2538,7 +2515,6 @@
             currentYear = y;
             currentMonth = m;
             
-            // สลับสีธีมประจำเดือนโดยอัตโนมัติ
             applyMonthlyColorTheme(currentYear, currentMonth - 1);
 
             selectedDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-14`;
@@ -2931,6 +2907,183 @@
             const arvInfo = isSecondTuesdayOrThursday(dateStr);
             const replacementLogs = [];
 
+            const getReasonText = (name) => {
+                const type = getLeaveTypeForStaffOnDate(dateStr, name);
+                return type === "ประชุม" ? "ประชุม" : "ลา";
+            };
+
+            // =========================================================================
+            // กรณีพิเศษ: มีผู้ลาพร้อมกันตั้งแต่ 3 คนขึ้นไป
+            // ตำแหน่ง verify จะว่าง เหลือเฉพาะตำแหน่งงาน OPD1, OPD2, IPD
+            // หากตำแหน่ง verify ไม่ใช่คนลา จะต้องมาแทนตำแหน่งหลัก
+            // โดยลำดับการเลือก: NCD เลือกก่อน -> หาก NCD ลา ให้คนตำแหน่ง rider ที่ไม่ได้ลาเลือกก่อน verify
+            // =========================================================================
+            if (allLeavesOnDate.length >= 3) {
+                let opd1 = baseDuties['OPD1'];
+                let opd2 = baseDuties['OPD2'];
+                let ipd = baseDuties['IPD'];
+                let verifyOrig = baseDuties['verify'];
+                let ncdOrig = baseDuties['NCD'];
+                let riderOrig = baseDuties['rider'];
+                let arv = null;
+
+                if (arvInfo.isARV) {
+                    if (allLeavesOnDate.includes("เบิด")) {
+                        arv = "ว่าง (ไม่มีผู้แทน - เบิดลา)";
+                    } else {
+                        arv = "เบิด";
+                    }
+                }
+
+                // จัดลำดับผู้แทนจากตำแหน่งที่ถูกยุบว่างตามสิทธิ์การเลือก: NCD (1) -> rider (2) -> verify (3)
+                const rawCandidates = [
+                    { role: 'NCD', name: ncdOrig },
+                    { role: 'rider', name: riderOrig },
+                    { role: 'verify', name: verifyOrig }
+                ];
+                let backupPool = rawCandidates.filter(c => {
+                    if (!c.name) return false;
+                    if (allLeavesOnDate.includes(c.name)) return false;
+                    if (arvInfo.isARV && c.name === "เบิด") return false;
+                    return true;
+                });
+
+                // ตรวจสอบตำแหน่งหลัก (OPD1, OPD2, IPD) ว่าตำแหน่งใดบ้างที่ต้องหาคนแทน
+                const coreRoles = [
+                    { pos: 'OPD1', orig: opd1 },
+                    { pos: 'OPD2', orig: opd2 },
+                    { pos: 'IPD', orig: ipd }
+                ];
+                const coreNeedingRepl = coreRoles.filter(r => {
+                    const isLeaving = allLeavesOnDate.includes(r.orig);
+                    const isArvBird = arvInfo.isARV && r.orig === "เบิด";
+                    return isLeaving || isArvBird;
+                });
+
+                const finalCoreMap = {
+                    OPD1: opd1,
+                    OPD2: opd2,
+                    IPD: ipd
+                };
+
+                const formatLeaveReason = (origPerson) => {
+                    if (arvInfo.isARV && origPerson === "เบิด") {
+                        return "แทนเบิด";
+                    }
+                    return `แทน${origPerson}ที่${getReasonText(origPerson)}`;
+                };
+
+                if (coreNeedingRepl.length === 1) {
+                    const target = coreNeedingRepl[0];
+                    if (backupPool.length > 0) {
+                        const chosen = backupPool[0];
+                        finalCoreMap[target.pos] = `${chosen.name} (${formatLeaveReason(target.orig)})`;
+                        replacementLogs.push(`ลา 3 คนขึ้นไป: ยุบตำแหน่ง verify/NCD/rider โยก "${chosen.name}" (${chosen.role}) ไปแทน "${target.orig}" ที่ ${target.pos}`);
+                    } else {
+                        const rText = (arvInfo.isARV && target.orig === "เบิด") ? "ไป ARV" : getReasonText(target.orig);
+                        finalCoreMap[target.pos] = `ว่าง (ไม่มีผู้แทน - "${target.orig}" ${rText})`;
+                    }
+                } else if (coreNeedingRepl.length === 2) {
+                    const t1 = coreNeedingRepl[0];
+                    const t2 = coreNeedingRepl[1];
+
+                    if (backupPool.length >= 2) {
+                        const b1 = backupPool[0];
+                        const b2 = backupPool[1];
+                        const priorityLabel = b1.role === 'NCD'
+                            ? `NCD เลือกก่อน ${b2.role}`
+                            : `${b1.role} เลือกก่อน ${b2.role}`;
+
+                        finalCoreMap[t1.pos] = `${b1.name} หรือ ${b2.name} (${priorityLabel} - ${formatLeaveReason(t1.orig)})`;
+                        finalCoreMap[t2.pos] = `${b1.name} หรือ ${b2.name} (${priorityLabel} - ${formatLeaveReason(t2.orig)})`;
+                        replacementLogs.push(`ลา 3 คนขึ้นไป (ทางเลือก 2 ทาง): "${b1.name}" (${b1.role}) มีสิทธิ์เลือกเข้าแทนที่ ${t1.pos} หรือ ${t2.pos} ก่อน "${b2.name}" (${b2.role})`);
+                    } else if (backupPool.length === 1) {
+                        const b1 = backupPool[0];
+                        finalCoreMap[t1.pos] = `${b1.name} (${formatLeaveReason(t1.orig)})`;
+                        const rText2 = (arvInfo.isARV && t2.orig === "เบิด") ? "ไป ARV" : getReasonText(t2.orig);
+                        finalCoreMap[t2.pos] = `ว่าง (ไม่มีผู้แทน - "${t2.orig}" ${rText2})`;
+                        replacementLogs.push(`ลา 3 คนขึ้นไป: โยก "${b1.name}" (${b1.role}) ไปแทนที่ ${t1.pos} ส่วน ${t2.pos} ว่าง`);
+                    } else {
+                        coreNeedingRepl.forEach(t => {
+                            const rText = (arvInfo.isARV && t.orig === "เบิด") ? "ไป ARV" : getReasonText(t.orig);
+                            finalCoreMap[t.pos] = `ว่าง (ไม่มีผู้แทน - "${t.orig}" ${rText})`;
+                        });
+                    }
+                } else if (coreNeedingRepl.length === 3) {
+                    if (backupPool.length === 3) {
+                        const b1 = backupPool[0]; // NCD
+                        const b2 = backupPool[1]; // rider
+                        const b3 = backupPool[2]; // verify
+                        const priorityLabel = `NCD เลือกก่อน > rider > verify`;
+
+                        coreNeedingRepl.forEach(t => {
+                            finalCoreMap[t.pos] = `${b1.name}/${b2.name}/${b3.name} (${priorityLabel} - ${formatLeaveReason(t.orig)})`;
+                        });
+                        replacementLogs.push(`ลา 3 คนขึ้นไป (OPD1, OPD2, IPD ลาทั้งหมด): "${b1.name}" (NCD) เลือกก่อน ตามด้วย "${b2.name}" (rider) และ "${b3.name}" (verify)`);
+                    } else if (backupPool.length === 2) {
+                        const b1 = backupPool[0];
+                        const b2 = backupPool[1];
+                        const priorityLabel = b1.role === 'NCD'
+                            ? `NCD เลือกก่อน ${b2.role}`
+                            : `${b1.role} เลือกก่อน ${b2.role}`;
+
+                        finalCoreMap[coreNeedingRepl[0].pos] = `${b1.name} หรือ ${b2.name} (${priorityLabel} - ${formatLeaveReason(coreNeedingRepl[0].orig)})`;
+                        finalCoreMap[coreNeedingRepl[1].pos] = `${b1.name} หรือ ${b2.name} (${priorityLabel} - ${formatLeaveReason(coreNeedingRepl[1].orig)})`;
+                        const t3 = coreNeedingRepl[2];
+                        const rText3 = (arvInfo.isARV && t3.orig === "เบิด") ? "ไป ARV" : getReasonText(t3.orig);
+                        finalCoreMap[t3.pos] = `ว่าง (ไม่มีผู้แทน - "${t3.orig}" ${rText3})`;
+                        replacementLogs.push(`ลา 3 คนขึ้นไป: "${b1.name}" (${b1.role}) เลือกก่อน "${b2.name}" (${b2.role})`);
+                    } else if (backupPool.length === 1) {
+                        const b1 = backupPool[0];
+                        finalCoreMap[coreNeedingRepl[0].pos] = `${b1.name} (${formatLeaveReason(coreNeedingRepl[0].orig)})`;
+                        for (let i = 1; i < 3; i++) {
+                            const t = coreNeedingRepl[i];
+                            const rText = (arvInfo.isARV && t.orig === "เบิด") ? "ไป ARV" : getReasonText(t.orig);
+                            finalCoreMap[t.pos] = `ว่าง (ไม่มีผู้แทน - "${t.orig}" ${rText})`;
+                        }
+                    } else {
+                        coreNeedingRepl.forEach(t => {
+                            const rText = (arvInfo.isARV && t.orig === "เบิด") ? "ไป ARV" : getReasonText(t.orig);
+                            finalCoreMap[t.pos] = `ว่าง (ไม่มีผู้แทน - "${t.orig}" ${rText})`;
+                        });
+                    }
+                }
+
+                const getDroppedStatus = (origPerson) => {
+                    if (allLeavesOnDate.includes(origPerson)) {
+                        return `ว่าง (${getReasonText(origPerson)})`;
+                    }
+                    if (arvInfo.isARV && origPerson === "เบิด") {
+                        return "ว่าง (ไปคลินิก ARV)";
+                    }
+                    return "ว่าง (ไปช่วยงานแทน)";
+                };
+
+                const finalDuties = {
+                    OPD1: finalCoreMap.OPD1,
+                    OPD2: finalCoreMap.OPD2,
+                    IPD: finalCoreMap.IPD,
+                    verify: getDroppedStatus(verifyOrig),
+                    NCD: getDroppedStatus(ncdOrig),
+                    rider: getDroppedStatus(riderOrig)
+                };
+
+                if (arvInfo.isARV) {
+                    finalDuties['ARV'] = arv;
+                }
+
+                return {
+                    isOff: false,
+                    reason: "",
+                    duties: finalDuties,
+                    arvInfo: arvInfo,
+                    staffMappingInfo: staffMappingInfo,
+                    replacementLogs: replacementLogs,
+                    activeLeaves: allActiveLeavesForDisplay
+                };
+            }
+            // =========================================================================
+
             let opd1 = baseDuties['OPD1'];
             let opd2 = baseDuties['OPD2'];
             let ipd = baseDuties['IPD'];
@@ -3002,11 +3155,6 @@
                     activeLeaves = activeLeaves.filter(name => name !== "เบิด");
                 }
             }
-
-            const getReasonText = (name) => {
-                const type = getLeaveTypeForStaffOnDate(dateStr, name);
-                return type === "ประชุม" ? "ประชุม" : "ลา";
-            };
 
             const getAvailableBackup = () => {
                 const backup1 = extractCleanName(ncd);
@@ -3113,30 +3261,55 @@
                              remainingLeavers = [leaver1, leaver2];
                         }
                         
-                        remainingLeavers.forEach(leaver => {
-                             const backup = getAvailableBackup();
-                             if(backup) {
-                                  const repl = `${backup} (แทน${leaver.name}ที่${getReasonText(leaver.name)})`;
-                                  if (leaver.pos === 'OPD1') opd1 = repl;
-                                  else if (leaver.pos === 'OPD2') opd2 = repl;
-                                  else if (leaver.pos === 'IPD') ipd = repl;
-                                  else if (leaver.pos === 'verify') verify = repl;
-                             } else {
-                                  const repl = `ว่าง (ไม่มีผู้แทน - "${leaver.name}" ${getReasonText(leaver.name)})`;
-                                  if (leaver.pos === 'OPD1') opd1 = repl;
-                                  else if (leaver.pos === 'OPD2') opd2 = repl;
-                                  else if (leaver.pos === 'IPD') ipd = repl;
-                                  else if (leaver.pos === 'verify') verify = repl;
-                             }
-                        });
+                        const backup1 = extractCleanName(ncd);
+                        const backup2 = extractCleanName(rider);
+                        const b1Avail = !allLeavesOnDate.includes(backup1) && !ncdVacant && backup1 !== "เบิด";
+                        const b2Avail = !allLeavesOnDate.includes(backup2) && !riderVacant && backup2 !== "เบิด";
 
-                        isRiderCombined = true;
-                        replacementLogs.push(`คลินิก ARV: มีการลาหลายตำแหน่ง ดำเนินการโยกย้ายกำลังพลทดแทนเท่าที่ทำได้`);
+                        if (remainingLeavers.length === 2 && b1Avail && b2Avail) {
+                            const rl1 = remainingLeavers[0];
+                            const rl2 = remainingLeavers[1];
+                            const repl1 = `${backup1} หรือ ${backup2} (NCD เลือกก่อน - แทน${rl1.name}ที่${getReasonText(rl1.name)})`;
+                            const repl2 = `${backup1} หรือ ${backup2} (NCD เลือกก่อน - แทน${rl2.name}ที่${getReasonText(rl2.name)})`;
+
+                            if (rl1.pos === 'OPD1') opd1 = repl1;
+                            else if (rl1.pos === 'OPD2') opd2 = repl1;
+                            else if (rl1.pos === 'IPD') ipd = repl1;
+                            else if (rl1.pos === 'verify') verify = repl1;
+
+                            if (rl2.pos === 'OPD1') opd1 = repl2;
+                            else if (rl2.pos === 'OPD2') opd2 = repl2;
+                            else if (rl2.pos === 'IPD') ipd = repl2;
+                            else if (rl2.pos === 'verify') verify = repl2;
+
+                            ncdVacant = true;
+                            riderVacant = true;
+                            replacementLogs.push(`ทางเลือกสลับเวร 2 ทาง (NCD เลือกก่อน): "${backup1}" (NCD) มีสิทธิ์เลือกแทน "${rl1.name}" (${rl1.pos}) หรือ "${rl2.name}" (${rl2.pos}) ก่อน ส่วน "${backup2}" (Rider) แทนอีกตำแหน่งที่เหลือ`);
+                        } else {
+                            remainingLeavers.forEach(leaver => {
+                                 const backup = getAvailableBackup();
+                                 if(backup) {
+                                      const repl = `${backup} (แทน${leaver.name}ที่${getReasonText(leaver.name)})`;
+                                      if (leaver.pos === 'OPD1') opd1 = repl;
+                                      else if (leaver.pos === 'OPD2') opd2 = repl;
+                                      else if (leaver.pos === 'IPD') ipd = repl;
+                                      else if (leaver.pos === 'verify') verify = repl;
+                                 } else {
+                                      const repl = `ว่าง (ไม่มีผู้แทน - "${leaver.name}" ${getReasonText(leaver.name)})`;
+                                      if (leaver.pos === 'OPD1') opd1 = repl;
+                                      else if (leaver.pos === 'OPD2') opd2 = repl;
+                                      else if (leaver.pos === 'IPD') ipd = repl;
+                                      else if (leaver.pos === 'verify') verify = repl;
+                                 }
+                            });
+                            isRiderCombined = true;
+                            replacementLogs.push(`คลินิก ARV: มีการลาหลายตำแหน่ง ดำเนินการโยกย้ายกำลังพลทดแทนเท่าที่ทำได้`);
+                        }
 
                     } else {
                         if (!isNcdOnLeave && !isRiderOnLeave) {
-                            const repl1 = `${primaryBackup} (แทน${leaver1.name}ที่${getReasonText(leaver1.name)})`;
-                            const repl2 = `${secondaryBackup} (แทน${leaver2.name}ที่${getReasonText(leaver2.name)})`;
+                            const repl1 = `${primaryBackup} หรือ ${secondaryBackup} (NCD เลือกก่อน - แทน${leaver1.name}ที่${getReasonText(leaver1.name)})`;
+                            const repl2 = `${primaryBackup} หรือ ${secondaryBackup} (NCD เลือกก่อน - แทน${leaver2.name}ที่${getReasonText(leaver2.name)})`;
 
                             if (leaver1.pos === 'OPD1') opd1 = repl1;
                             else if (leaver1.pos === 'OPD2') opd2 = repl1;
@@ -3152,7 +3325,7 @@
 
                             ncdVacant = true;
                             riderVacant = true;
-                            replacementLogs.push(`สลับกำลังพล: "${leaver1.name}" และ "${leaver2.name}" ลา/ประชุม -> ดึง "${primaryBackup}" (NCD) และ "${secondaryBackup}" (Rider) แทน`);
+                            replacementLogs.push(`ทางเลือกสลับเวร 2 ทาง (NCD เลือกก่อน): "${primaryBackup}" (NCD) มีสิทธิ์เลือกเข้าแทน "${leaver1.name}" (${leaver1.pos}) หรือ "${leaver2.name}" (${leaver2.pos}) ก่อน ส่วน "${secondaryBackup}" (Rider) จะเข้าแทนในอีกตำแหน่งที่เหลือ`);
                         } 
                         else if (!isNcdOnLeave) {
                             const repl1 = `${primaryBackup} (แทน${leaver1.name}ที่${getReasonText(leaver1.name)})`;
@@ -3282,6 +3455,7 @@
             const totalDays = new Date(currentYear, currentMonth, 0).getDate();
 
             let holidayCount = 0;
+            let workingDaysCount = 0;
 
             for (let i = 0; i < startDayOfWeek; i++) {
                 const empty = document.createElement("div");
@@ -3325,6 +3499,7 @@
                         header.appendChild(statusBadge);
                     }
                 } else {
+                    workingDaysCount++;
                     if (result.staffMappingInfo.inherited) {
                         const inheritBadge = document.createElement("span");
                         inheritBadge.className = "text-[7px] sm:text-[8px] bg-sky-50 text-sky-600 font-medium px-1 rounded-md";
@@ -3362,7 +3537,15 @@
 
                     for (const [pos, person] of Object.entries(result.duties)) {
                         const cleanName = extractCleanName(person);
-                        if (ALL_STAFF.includes(cleanName)) {
+                        if (cleanName.includes('/')) {
+                            const parts = cleanName.split('/');
+                            parts.forEach(part => {
+                                const p = part.trim();
+                                if (ALL_STAFF.includes(p)) {
+                                    staffDutyStats[p] += (1 / parts.length);
+                                }
+                            });
+                        } else if (ALL_STAFF.includes(cleanName)) {
                             staffDutyStats[cleanName] += 1;
                         }
                     }
@@ -3396,9 +3579,13 @@
             }
 
             document.getElementById("holiday-count-badge").textContent = `${holidayCount} วันหยุดราชการในเดือนนี้`;
+            const workdayBadge = document.getElementById("workday-count-badge");
+            if (workdayBadge) {
+                workdayBadge.textContent = `${workingDaysCount} วันทำการ`;
+            }
+
             renderStaffStats(staffDutyStats);
             
-            // อัปเดตสรุปวันลาประจำเดือนใน Tab 2 ให้ตรงกับเดือนที่กำลังเลื่อนดูทันที
             if (typeof updateTab2LeaveSummary === 'function') {
                 updateTab2LeaveSummary();
             }
@@ -3407,6 +3594,12 @@
         function extractCleanName(str) {
             if (!str) return "";
             let cleanStr = str.split('(')[0].trim();
+            if (cleanStr.includes(" หรือ ")) {
+                return cleanStr.split(" หรือ ").map(s => s.trim()).join("/");
+            }
+            if (cleanStr.includes("/")) {
+                return cleanStr;
+            }
             for (const name of ALL_STAFF) {
                 if (cleanStr.includes(name)) return name;
             }
@@ -3565,12 +3758,12 @@
                 roleBadge.textContent = role;
 
                 const personName = document.createElement("span");
-                personName.className = "text-sm font-semibold flex items-center gap-1.5";
+                personName.className = "text-sm font-semibold flex items-center gap-1.5 text-right";
                 
                 if (isReplaced) {
-                    personName.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i> ${person}`;
+                    personName.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500 text-xs shrink-0"></i> <span>${person}</span>`;
                 } else if (isArvSpec) {
-                    personName.innerHTML = `<i class="fa-solid fa-star text-amber-500 text-xs animate-pulse"></i> ${person}`;
+                    personName.innerHTML = `<i class="fa-solid fa-star text-amber-500 text-xs animate-pulse shrink-0"></i> <span>${person}</span>`;
                 } else {
                     personName.textContent = person;
                 }
@@ -3781,6 +3974,32 @@
             }
         }
 
+        async function removeArvDate(dateStr) {
+            leaves = leaves.filter(l => !(l.name === "SYSTEM_ARV_CUSTOM" && l.start === dateStr));
+            
+            const defaultInfo = isDefaultARV(dateStr);
+            if (defaultInfo.isARV) {
+                if (!leaves.some(l => l.name === "SYSTEM_ARV_CANCEL" && l.start === dateStr)) {
+                    leaves.push({
+                        id: 'arvx_' + Date.now() + Math.random().toString(16).slice(2),
+                        name: "SYSTEM_ARV_CANCEL",
+                        start: dateStr,
+                        end: dateStr,
+                        type: "ARV",
+                        period: "เต็มวัน",
+                        note: "ยกเลิก"
+                    });
+                }
+            }
+
+            await saveLeaves();
+            renderArvModalList();
+            updateCalendar();
+            if(dateStr.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)) {
+                selectDate(selectedDateStr);
+            }
+        }
+
         // ----------------- HOLIDAY CONFIGURATION MODAL (BOTH TABS & CROSS-DEVICE) -----------------
         let holidayModalTargetYear = currentYear;
         let holidayModalTargetMonth = currentMonth;
@@ -3877,9 +4096,7 @@
             const hName = inputName.value.trim() || "วันหยุดพิเศษ";
             if (!dateStr) return;
             
-            // ลบรายการยกเลิกเดิมถ้ามี
             leaves = leaves.filter(l => !(l.name === "SYSTEM_HOLIDAY_CANCEL" && l.start === dateStr));
-            // ลบรายการกำหนดเองเดิมของวันเดียวกันเพื่ออัปเดตชื่อใหม่
             leaves = leaves.filter(l => !(l.name === "SYSTEM_HOLIDAY_CUSTOM" && l.start === dateStr));
             
             const defaultHoliday = getDefaultHoliday(dateStr);
@@ -3905,10 +4122,8 @@
         }
 
         async function removeHolidayDate(dateStr) {
-            // ลบวันหยุดที่ตั้งเอง
             leaves = leaves.filter(l => !(l.name === "SYSTEM_HOLIDAY_CUSTOM" && l.start === dateStr));
             
-            // หากเป็นวันหยุดระบบอัตโนมัติ ให้ใส่ flag ยกเลิกไว้
             const defaultHoliday = getDefaultHoliday(dateStr);
             if (defaultHoliday) {
                 if (!leaves.some(l => l.name === "SYSTEM_HOLIDAY_CANCEL" && l.start === dateStr)) {
